@@ -169,10 +169,8 @@ export default function Home(): JSX.Element {
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
                 We&apos;re Growing Our Directory
               </h2>
-              <p className="text-sm sm:text-md text-muted-foreground max-w-2xl mx-auto">
-                We&apos;re in the process of making our sustainable brands directory 
-                as extensive as possible. Know an amazing eco-friendly brand 
-                that should be featured here? Help us grow the community!
+              <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection of eco-friendly companies more comprehensive. If you know of an amazing sustainable brand that should be featured, please share it with us. We&apos;d appreciate your help growing this community resource."
               </p>
             </div>
           )}

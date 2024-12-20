@@ -146,8 +146,8 @@ export function Header({
                     <div className="px-4 overflow-y-auto">
                         {searchResults.length > 0 ? (
                             <>
-                                <div className="pt-2 pb-2 px-4">
-                                    <span className="text-[12px] text-muted-foreground block mb-0">
+                                <div className="pt-4 pb-2 px-4">
+                                    <span className="text-sm text-muted-foreground block mb-0">
                                         {localSearchQuery ? 'Search results' : 'Top Sustainable Brands'}
                                     </span>
                                 </div>
