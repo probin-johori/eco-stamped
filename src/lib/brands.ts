@@ -116,7 +116,14 @@ export enum Certification {
   B_CORPORATION = "B Corporation",
   CRADLE_TO_CRADLE = "Cradle to Cradle",
   FSC = "FSC Certified",
-  ENERGY_STAR = "Energy Star"
+  ENERGY_STAR = "Energy Star",
+  GREEN_SEAL = "Green Seal",
+  ECOCERT = "Ecocert",
+  USDA_ORGANIC = "USDA Organic",
+  RAINFOREST_ALLIANCE = "Rainforest Alliance",
+  BLUESIGN = "Bluesign",
+  OEKO_TEX = "OEKO-TEX",
+  GLOBAL_RECYCLE = "Global Recycle Standard"
 }
 
 export interface SustainableFeatureContent {

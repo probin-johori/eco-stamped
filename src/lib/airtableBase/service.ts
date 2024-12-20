@@ -8,7 +8,6 @@ import {
 } from '@/lib/brands';
 import type { FieldSet, Attachment } from 'airtable';
 
-// Update AIRTABLE_TABLES in config.ts
 const TABLES = {
   BRANDS: AIRTABLE_CONFIG.tables.BRANDS,
   RETAILERS: 'tblbobbpQEss4b0Zm'
@@ -23,15 +22,21 @@ interface RetailerInfo {
 
 // Helper functions for mapping Airtable values to enums
 const mapAirtableToCertification = (value: string): Certification => {
-  // Direct mapping - value should exactly match enum values
-  const certificationValue = Object.values(Certification).find(cert => cert === value);
+  // Create a reverse mapping of string values to enum keys
+  const certificationMap = Object.entries(Certification).reduce((acc, [enumKey, stringValue]) => {
+    acc[stringValue] = enumKey as keyof typeof Certification;
+    return acc;
+  }, {} as Record<string, keyof typeof Certification>);
   
-  if (!certificationValue) {
+  // Get the enum key for this string value
+  const enumKey = certificationMap[value];
+  
+  if (!enumKey) {
     console.warn(`Unknown certification value: ${value}`);
-    return Certification.ORGANIC;
+    return Certification.ORGANIC; // fallback value
   }
   
-  return certificationValue;
+  return Certification[enumKey];
 };
 
 const mapAirtableToCategory = (value: string): Category => {
@@ -80,7 +85,6 @@ export class AirtableService {
 
   static async fetchAllBrands(): Promise<SustainableBrand[]> {
     try {
-      // Validate configuration
       if (!AIRTABLE_CONFIG.token) {
         throw new Error('Airtable token is missing');
       }
@@ -94,11 +98,8 @@ export class AirtableService {
         tableId: AIRTABLE_CONFIG.tables.BRANDS
       });
 
-      // Get table and fetch records
       const table = airtableBase(TABLES.BRANDS);
       const records = await table.select().all();
-      
-      // Fetch all retailers once for efficient lookup
       const retailers = await AirtableService.fetchRetailers();
       
       console.log('Fetched records:', {
@@ -109,7 +110,6 @@ export class AirtableService {
       return records.map(record => {
         const fields = record.fields as any;
         
-        // Debug logging for field values and IsCuratorsPick
         console.log('Processing brand:', {
           name: fields.Name,
           isCuratorsPick: fields.IsCuratorsPick,
@@ -126,7 +126,6 @@ export class AirtableService {
         });
 
         try {
-          // Handle SustainableFeatures and FeatureDescription
           const features = Array.isArray(fields.SustainableFeatures) 
             ? Array.from(new Set(fields.SustainableFeatures as string[]))
             : [];
@@ -135,13 +134,11 @@ export class AirtableService {
             ? fields.FeatureDescription.split(';').map((d: string) => d.trim())
             : [];
 
-          // Create sustainable features array with proper mapping
           const sustainableFeatures = features.map((feature: string, index: number) => ({
             title: feature as SustainableFeature,
             description: descriptions[index] || ''
           }));
 
-          // Handle Categories with proper mapping
           const categories = Array.isArray(fields.Categories)
             ? Array.from(
                 new Set(
@@ -150,7 +147,6 @@ export class AirtableService {
               )
             : [Category.CLOTHING];
 
-          // Handle Images
           const images = Array.isArray(fields.Images)
             ? fields.Images.map((img: Attachment, index: number) => ({
                 url: img.url,
@@ -158,7 +154,6 @@ export class AirtableService {
               }))
             : [];
 
-          // Handle Founders with images
           const founderNames = fields.FoundersNames?.split(';') || [];
           const founderRoles = fields.FounderRoles?.split(';') || [];
           const founderImages = fields.FounderImages 
@@ -171,7 +166,6 @@ export class AirtableService {
             imageUrl: founderImages[index] || '/placeholder-founder.jpg'
           }));
 
-          // Handle Retailers with logos
           const linkedRetailers = Array.isArray(fields.Retailers) 
             ? fields.Retailers 
             : [];
@@ -197,31 +191,20 @@ export class AirtableService {
           
           const brandRetailers = Array.from(retailerMap.values());
 
-          // Handle Certifications
           const certifications = Array.isArray(fields.Certifications)
             ? Array.from(
                 new Set(
-                  fields.Certifications.map((cert: string) => {
-                    const mapped = mapAirtableToCertification(cert);
-                    console.log('Mapping certification:', {
-                      original: cert,
-                      mapped,
-                      allValues: Object.values(Certification)
-                    });
-                    return mapped;
-                  })
+                  (fields.Certifications as string[]).map((cert: string) => mapAirtableToCertification(cert))
                 )
               )
             : [];
 
-          // Handle ProductRange
           const productRange = typeof fields.ProductRange === 'string'
             ? fields.ProductRange.split(';').map((item: string) => item.trim())
             : Array.isArray(fields.ProductRange)
               ? Array.from(new Set(fields.ProductRange as string[]))
               : [];
 
-          // Create brand object with explicit boolean conversion for isCuratorsPick
           const brand: SustainableBrand = {
             id: record.id,
             name: fields.Name || '',
@@ -251,7 +234,6 @@ export class AirtableService {
             }
           };
 
-          // Debug logging for the processed brand
           console.log('Processed brand:', {
             name: brand.name,
             isCuratorsPick: brand.isCuratorsPick,
@@ -286,7 +268,6 @@ export class AirtableService {
     try {
       console.log('Starting brand creation');
       
-      // First, look up retailer IDs
       const retailers = await AirtableService.fetchRetailers();
       const retailerIds = data.retailers
         .map(retailer => 
@@ -386,12 +367,10 @@ export class AirtableService {
       if (data.retailers) {
         const retailers = await AirtableService.fetchRetailers();
         const retailerIds = data.retailers
-          .map(retailer => 
-            retailers.find(r => r.name === retailer.marketplace)?.id
+          .map(retailer => retailers.find(r => r.name === retailer.marketplace)?.id
           )
-          .filter(id => id) as string[];
-
-        airtableData.Retailers = retailerIds;
+          .filter(id => id) as unknown as string
+          airtableData.Retailers = retailerIds;
         airtableData.Retailers_URLs = data.retailers.map(r => r.url).join(';');
       }
       if (data.origin?.city) airtableData.Origin_City = data.origin.city;
