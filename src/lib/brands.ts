@@ -123,7 +123,8 @@ export enum Certification {
   RAINFOREST_ALLIANCE = "Rainforest Alliance",
   BLUESIGN = "Bluesign",
   OEKO_TEX = "OEKO-TEX",
-  GLOBAL_RECYCLE = "Global Recycle Standard"
+  GLOBAL_RECYCLE = "Global Recycle Standard",
+  PETA_CERTIFIED = "PETA Certified"
 }
 
 export interface SustainableFeatureContent {
