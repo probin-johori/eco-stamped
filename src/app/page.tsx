@@ -166,10 +166,10 @@ export default function Home(): JSX.Element {
 
           {!isLoading && filteredBrands.length === 0 && (
             <div className="text-center py-16">
-              <h2 className="text-2xl font-semibold text-foreground mb-3">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
                 We&apos;re Growing Our Directory
               </h2>
-              <p className="text-muted-foreground text-md max-w-2xl mx-auto">
+              <p className="text-sm sm:text-md text-muted-foreground max-w-2xl mx-auto">
                 We&apos;re in the process of making our sustainable brands directory 
                 as extensive as possible. Know an amazing eco-friendly brand 
                 that should be featured here? Help us grow the community!

@@ -212,7 +212,7 @@ export default function BrandPage({ params }: Props) {
 
         <div className="pt-24 pb-16">
           <div className="px-4 sm:px-40">
-            <div className="flex flex-col items-center mb-4">
+            <div className="flex flex-col items-center mb-8">
               <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center bg-white border border-border/50 rounded-xl mb-4 overflow-hidden">
                 {brand.logo ? (
                   <Image 
@@ -239,7 +239,7 @@ export default function BrandPage({ params }: Props) {
                 <div className="text-xl sm:text-4xl font-bold text-foreground">{brand.name}</div>
                 {hasCategories && (
                   <div className="mt-0">
-                    <span className="text-sm sm:text-base text-muted-foreground">
+                    <span className="text-sm sm:text-base text-muted-foreground leading-none">
                       {brand.categories.map((category, index) => (
                         <span key={category}>
                           {category}
