@@ -24,12 +24,6 @@ export const BrandCard = ({ brand, onClick }: BrandCardProps) => {
     const [logoError, setLogoError] = useState(false);
     const detailsPath = `/${slugify(brand.name)}`;
 
-    console.log('Brand card render:', {
-        brandName: brand.name,
-        isCuratorsPick: brand.isCuratorsPick,
-        type: typeof brand.isCuratorsPick
-    });
-
     const handleClick = (e: React.MouseEvent) => {
         if (onClick) {
             e.preventDefault();
@@ -63,7 +57,7 @@ export const BrandCard = ({ brand, onClick }: BrandCardProps) => {
                                     quality={100}
                                     priority
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="object-cover transition-transform duration-300 hover:scale-105"
+                                    className="object-cover transition-transform duration-300 sm:hover:scale-105"
                                     onError={() => setCoverError(true)}
                                 />
                             ) : (

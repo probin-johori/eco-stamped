@@ -25,12 +25,10 @@ export default function Home(): JSX.Element {
   const [activeCategories, setActiveCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showShadow, setShowShadow] = useState(false);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [showAddBrandForm, setShowAddBrandForm] = useState(false);
   const [visibleBrands, setVisibleBrands] = useState<number>(BRANDS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   
-  const lastScrollY = useRef(0);
   const gridStartRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -52,35 +50,9 @@ export default function Home(): JSX.Element {
     return filteredBrands.slice(0, visibleBrands);
   }, [filteredBrands, visibleBrands]);
 
-  useEffect(() => {
-    if (showAddBrandForm) {
-      setIsHeaderVisible(true);
-    }
-  }, [showAddBrandForm]);
-
   const handleScroll = useCallback(() => {
-    // Only handle scroll-based header visibility on mobile
-    if (window.matchMedia('(max-width: 640px)').matches) {
-      const currentScrollY = window.scrollY;
-      const scrollingDown = currentScrollY > lastScrollY.current;
-      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
-      
-      if (scrollDelta > 5) {
-        if (scrollingDown && currentScrollY > HEADER_HEIGHT && !showAddBrandForm) {
-          setIsHeaderVisible(false);
-        } else if (!scrollingDown) {
-          setIsHeaderVisible(true);
-        }
-      }
-      
-      setShowShadow(currentScrollY > 0);
-      lastScrollY.current = currentScrollY;
-    } else {
-      // Always show header on desktop
-      setIsHeaderVisible(true);
-      setShowShadow(window.scrollY > 0);
-    }
-  }, [showAddBrandForm]);
+    setShowShadow(window.scrollY > 0);
+  }, []);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -152,13 +124,8 @@ export default function Home(): JSX.Element {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header Group with updated z-index for mobile */}
-      <div 
-        className={`fixed inset-x-0 top-0 bg-background sm:transform-none transition-transform duration-200 ease-out transform ${
-          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
-        style={{ zIndex: 49 }}
-      >
+      {/* Header Group */}
+      <div className="fixed inset-x-0 top-0 bg-background" style={{ zIndex: 49 }}>
         <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
           {/* Header with highest z-index */}
           <div className="relative" style={{ zIndex: 51 }}>

@@ -118,14 +118,14 @@ export function Header({
                             onClick={handleCloseSearch}
                             className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-full opacity-70 hover:opacity-100 transition-opacity"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-5 w-5" />
                             <span className="sr-only">Close</span>
                         </button>
                         
                         <div className="relative">
                             <Input 
                                 placeholder="Search sustainable brands..." 
-                                className="w-full pl-10 pr-16 h-10 rounded-full bg-muted border-0"
+                                className="w-full pl-10 pr-16 h-10 rounded-full bg-muted border-0 text-base"
                                 value={localSearchQuery}
                                 onChange={(e) => setLocalSearchQuery(e.target.value)}
                                 autoFocus
@@ -235,7 +235,7 @@ export function Header({
                                         onClick={handleClearSearch}
                                         className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-muted"
                                     >
-                                        <X className="h-4 w-4 text-muted-foreground" />
+                                        <X className="h-5 w-5 text-muted-foreground" />
                                     </button>
                                 )}
 
