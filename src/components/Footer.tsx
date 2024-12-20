@@ -63,7 +63,7 @@ export const Footer = ({ onShowAddBrandForm }: { onShowAddBrandForm: (show: bool
               {/* Social Icons - First line on mobile */}
               <div className="flex items-center gap-6">
                 <Link
-                  href="https://instagram.com/sustainablebrands.in"
+                  href="https://instagram.com/ecostamped.world"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground hover:text-foreground/80"
