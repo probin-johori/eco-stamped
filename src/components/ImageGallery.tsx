@@ -310,13 +310,16 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
                           }
                         }
                       }}
-                      className={`relative h-14 aspect-square flex-shrink-0 rounded-lg overflow-hidden 
-                        transition-all duration-200 ${
+                      className={`relative h-14 aspect-square flex-shrink-0 rounded-lg overflow-hidden transition-all duration-200 ${
                         index === currentFullscreenIndex 
                           ? 'ring-2 ring-white scale-105' 
                           : 'opacity-50 hover:opacity-70'
                       }`}
                     >
+                      <div className="absolute inset-0 rounded-lg overflow-hidden">
+                        {renderMedia(index)}
+                      </div>
+                      
                       {renderMedia(index)}
                     </button>
                   ))}
