@@ -1,14 +1,19 @@
-import { 
-  Category, 
-  Certification, 
-  SustainableFeature, 
-  type SustainableBrand} from '../brands';
-import { 
-  type AirtableBrandRecord, 
+import {
+  Category,
+  Certification,
+  SustainableFeature,
+  type SustainableBrand,
+  type MarketplaceAvailability,
+  Marketplace,
+  getMarketplaceLogo
+} from '../brands';
+
+import {
+  type AirtableBrandRecord,
   type AirtableFeatureRecord,
   type AirtableFounderRecord,
   type AirtableImageRecord,
-  type AirtableRetailerRecord 
+  type AirtableRetailerRecord
 } from './types';
 
 export const transformAirtableToSustainableBrand = async (
@@ -23,7 +28,8 @@ export const transformAirtableToSustainableBrand = async (
     id: recordId,
     name: brandRecord.Name,
     logo: brandRecord.Logo[0]?.url || '',
-    categories: brandRecord.Categories.map(cat => 
+    cover: '', // Required field, using empty string as default
+    categories: brandRecord.Categories.map(cat =>
       Category[cat as keyof typeof Category]
     ),
     content: {
@@ -61,10 +67,14 @@ export const transformAirtableToSustainableBrand = async (
     ),
     retailers: retailers
       .filter(retailer => retailer.BrandId.includes(recordId))
-      .map(retailer => ({
-        marketplace: retailer.Marketplace,
-        url: retailer.URL
-      })),
+      .map(retailer => {
+        const marketplaceEnum = Marketplace[retailer.Marketplace.toUpperCase().replace(/ /g, '_') as keyof typeof Marketplace];
+        return {
+          marketplace: marketplaceEnum,
+          url: retailer.URL,
+          logo: getMarketplaceLogo(marketplaceEnum)
+        };
+      }),
     origin: {
       city: brandRecord.Origin_City,
       country: brandRecord.Origin_Country
@@ -77,7 +87,13 @@ export const transformBrandToAirtable = (
 ): Partial<AirtableBrandRecord> => {
   return {
     Name: data.name,
-    Logo: data.logo ? [{ url: data.logo }] : undefined,
+    Logo: data.logo ? [{
+      url: data.logo,
+      id: 'logo',
+      filename: 'logo.jpg',
+      size: 0,
+      type: 'image/jpeg'
+    }] : undefined,
     Categories: data.categories?.map(cat => cat.toString()),
     About: data.content?.about,
     Impact: data.content?.impact,
