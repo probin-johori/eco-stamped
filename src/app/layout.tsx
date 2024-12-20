@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from '@/lib/providers/QueryProvider';
 import { ReactNode } from 'react';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Instead of namespace, we'll use a proper type declaration
 import type { DetailedHTMLProps, HtmlHTMLAttributes } from 'react';
