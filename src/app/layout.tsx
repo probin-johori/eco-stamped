@@ -4,10 +4,12 @@ import "./globals.css";
 import { QueryProvider } from '@/lib/providers/QueryProvider';
 import { ReactNode } from 'react';
 
-// Add these type declarations
-declare namespace JSX {
+// Instead of namespace, we'll use a proper type declaration
+import type { DetailedHTMLProps, HtmlHTMLAttributes } from 'react';
+
+declare module 'react' {
   interface IntrinsicElements {
-    html: React.DetailedHTMLProps<React.HtmlHTMLAttributes<HTMLHtmlElement>, HTMLHtmlElement>;
+    html: DetailedHTMLProps<HtmlHTMLAttributes<HTMLHtmlElement>, HTMLHtmlElement>;
   }
 }
 

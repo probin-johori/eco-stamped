@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { AddBrandForm } from '@/components/AddBrandForm';
 import {
   Heart,
@@ -11,7 +10,6 @@ import {
   Users,
   Target,
   Sparkles,
-  ArrowRight,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -28,7 +26,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "Can I submit my brand for listing?",
-    answer: "Yes! We welcome submissions from sustainable brands. Click the 'Add Brand' button in the header to start the submission process. We'll review your application and get back to you within 5-7 business days."
+    answer: "Yes! We welcome submissions from sustainable brands. Click the &apos;Add Brand&apos; button in the header to start the submission process. We&apos;ll review your application and get back to you within 5-7 business days."
   },
   {
     question: "What criteria do you use to evaluate sustainability?",
@@ -63,10 +61,10 @@ export default function AboutPage() {
             {/* Hero Section */}
             <div className="text-center mb-16">
               <h1 className="text-4xl font-bold text-foreground mb-6">
-                Empowering India's Sustainable Future
+                Empowering India&apos;s Sustainable Future
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                We're building India's most comprehensive directory of sustainable brands, 
+                We&apos;re building India&apos;s most comprehensive directory of sustainable brands, 
                 making it easier for conscious consumers to discover and support 
                 eco-friendly businesses.
               </p>
@@ -80,7 +78,7 @@ export default function AboutPage() {
                   <h2 className="text-lg font-semibold">Our Mission</h2>
                 </div>
                 <p className="text-foreground">
-                  To accelerate India's transition to sustainable consumption by connecting 
+                  To accelerate India&apos;s transition to sustainable consumption by connecting 
                   conscious consumers with ethical brands. We believe in making sustainable 
                   choices accessible and transparent for everyone.
                 </p>

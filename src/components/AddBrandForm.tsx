@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef } from 'react'
 import emailjs from '@emailjs/browser'
 import { X } from 'lucide-react'
+import { 
+    type SustainableBrand, 
+    type BrandContent,
+    type BrandOrigin,
+    Category,
+    Certification
+} from '@/lib/brands'
 import {
     Dialog,
     DialogContent,
@@ -16,13 +23,20 @@ import { Label } from "@/components/ui/label"
 import { lockScroll, unlockScroll } from '@/utils/scrollLock'
 
 interface AddBrandFormProps {
-    isOpen: boolean
-    onClose: () => void
-    onSubmit: (data: any) => void
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (data: Omit<SustainableBrand, 'id'>) => void;
+}
+
+interface FormState {
+    brandName: string;
+    website: string;
+    submitterName: string;
+    submitterEmail: string;
 }
 
 export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormState>({
         brandName: '',
         website: '',
         submitterName: '',
@@ -30,12 +44,11 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
     })
     const nameInputRef = useRef<HTMLInputElement>(null)
 
-    const isValidEmail = (email: string) => {
+    const isValidEmail = (email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         return emailRegex.test(email)
     }
 
-    // Handle form focus
     useEffect(() => {
         if (isOpen && nameInputRef.current) {
             setTimeout(() => {
@@ -44,7 +57,6 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
         }
     }, [isOpen])
 
-    // Handle form reset
     useEffect(() => {
         if (!isOpen) {
             setFormData({
@@ -56,7 +68,6 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
         }
     }, [isOpen])
 
-    // Handle scroll lock
     useEffect(() => {
         if (isOpen) {
             lockScroll()
@@ -93,7 +104,30 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
                 '5uu-8S9QOtsRdSZ3O'
             )
             
-            onSubmit(formData)
+            const brandData: Omit<SustainableBrand, 'id'> = {
+                name: formData.brandName,
+                logo: '',
+                cover: '',
+                categories: [] as Category[],
+                content: {
+                    about: '',
+                    impact: '',
+                    sustainableFeatures: []
+                } as BrandContent,
+                url: formData.website,
+                businessStartDate: new Date().toISOString(),
+                images: [],
+                founder: [],
+                productRange: [],
+                certifications: [] as Certification[],
+                retailers: [],
+                origin: {
+                    city: '',
+                    country: ''
+                } as BrandOrigin
+            }
+            
+            onSubmit(brandData)
             setFormData({
                 brandName: '',
                 website: '',
@@ -112,7 +146,6 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
 
     return (
         <>
-            {/* Separate backdrop div with lower z-index */}
             {isOpen && (
                 <div 
                     className="fixed inset-0 bg-background/80 backdrop-blur-sm" 
@@ -200,7 +233,7 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
                                     />
                                 </div>
                                 <p className="text-sm text-muted-foreground text-left">
-                                    Submit 50 verified eco-friendly brands to earn rewards. We'll track your progress via email.
+                                    Submit 50 verified eco-friendly brands to earn rewards. We&apos;ll track your progress via email.
                                 </p>
                             </div>
                             <div className="flex justify-center">

@@ -90,8 +90,6 @@ export default function Home(): JSX.Element {
     const currentScrollY = window.scrollY;
     const scrollingDown = currentScrollY > lastScrollY.current;
     
-    // Show QuickFilter immediately when scrolling up
-    // Hide it when scrolling down (after a small threshold)
     if (scrollingDown && currentScrollY > 100) {
       setIsQuickFilterVisible(false);
     } else if (!scrollingDown) {
@@ -117,8 +115,9 @@ export default function Home(): JSX.Element {
     };
   }, [handleScroll]);
 
-  const handleFormSubmit = useCallback(async (formData: Omit<SustainableBrand, 'id'>) => {
+  const handleFormSubmit = useCallback(async (data: Omit<SustainableBrand, 'id'>) => {
     try {
+      console.log('Submitting form data:', data);
       await queryClient.invalidateQueries({ queryKey: ['brands'] });
       setShowAddBrandForm(false);
     } catch (err) {
@@ -147,7 +146,7 @@ export default function Home(): JSX.Element {
         />
       </div>
 
-      <div className="h-[64px]" /> {/* Precise spacer for header height */}
+      <div className="h-[64px]" />
 
       <div 
         className={`fixed inset-x-0 top-[64px] z-40 transition-transform duration-300 transform bg-background ${
@@ -167,7 +166,7 @@ export default function Home(): JSX.Element {
           {activeCategories.length === 0 && !isLoading && filteredBrands.length > 0 && (
             <div className="text-center mb-6 sm:mb-12">
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
-                Discover Tomorrow's India
+                Discover Tomorrow&apos;s India
                 <br />
                 with Eco-Champions
               </h1>
@@ -177,10 +176,10 @@ export default function Home(): JSX.Element {
           {!isLoading && filteredBrands.length === 0 && (
             <div className="text-center py-16">
               <h2 className="text-2xl font-semibold text-foreground mb-3">
-                We're Growing Our Directory
+                We&apos;re Growing Our Directory
               </h2>
               <p className="text-muted-foreground text-md max-w-2xl mx-auto">
-                We're in the process of making our sustainable brands directory 
+                We&apos;re in the process of making our sustainable brands directory 
                 as extensive as possible. Know an amazing eco-friendly brand 
                 that should be featured here? Help us grow the community!
               </p>

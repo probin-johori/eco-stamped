@@ -4,41 +4,46 @@ import React from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface Certification {
   name: string;
   description: string;
-  logo: string; // Add a logo image URL or path
+  logo: string;
 }
 
 const certifications: Certification[] = [
   {
     name: 'LEED Certification',
     description: 'Globally recognized rating system for green buildings.',
-    logo: '/logos/leed.png', // Example path
+    logo: '/logos/leed.png',
   },
   {
     name: 'Energy Star',
     description: 'Recognizes energy-efficient products and buildings.',
-    logo: '/logos/energy-star.png', // Example path
+    logo: '/logos/energy-star.png',
   },
   {
     name: 'Fair Trade Certified',
     description: 'Ensures fair wages, safe working conditions, and sustainability.',
-    logo: '/logos/fair-trade.png', // Example path
+    logo: '/logos/fair-trade.png',
   },
   {
     name: 'Forest Stewardship Council (FSC)',
     description: 'Promotes responsible management of forests.',
-    logo: '/logos/fsc.png', // Example path
+    logo: '/logos/fsc.png',
   },
 ];
 
 export default function CertificationPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
+      <Header 
+        searchQuery="" 
+        onSearchChange={() => {}}
+        showAddBrandForm={false}
+        onShowAddBrandForm={() => {}}
+      />
       <main className="pt-24 pb-16">
         <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
           {/* Hero Section */}
@@ -59,11 +64,13 @@ export default function CertificationPage() {
                 className="bg-card shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-300"
               >
                 {/* Logo */}
-                <div className="mb-6">
-                  <img
+                <div className="mb-6 relative h-16 w-16">
+                  <Image
                     src={cert.logo}
-                    alt={cert.name}
-                    className="h-16 w-16 object-contain"
+                    alt={`${cert.name} logo`}
+                    fill
+                    className="object-contain"
+                    priority={index < 4}
                   />
                 </div>
 
@@ -86,8 +93,7 @@ export default function CertificationPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
+      <Footer onShowAddBrandForm={() => {}} />
     </div>
   );
 }
