@@ -6,6 +6,7 @@ import { Search, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getBrands, type SustainableBrand } from '@/lib/brands';
+import { lockScroll, unlockScroll } from '@/utils/scrollLock';
 import Link from "next/link";
 
 interface HeaderProps {
@@ -37,6 +38,18 @@ export function Header({
     const [showMobileSearch, setShowMobileSearch] = useState<boolean>(false);
     const searchRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (showMobileSearch) {
+            lockScroll();
+        } else {
+            unlockScroll();
+        }
+
+        return () => {
+            unlockScroll();
+        };
+    }, [showMobileSearch]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -96,17 +109,19 @@ export function Header({
 
     // Mobile Search Overlay Component
     const MobileSearchOverlay = () => (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60]">
-            <div className="fixed inset-0 bg-background/95">
-                <div className="p-4 relative">
-                    <button
-                        onClick={handleCloseSearch}
-                        className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-full opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    >
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </button>
-                    <div className="sm:mt-0 mt-12">
+        <div className="fixed inset-0 z-[60]">
+            <div className="fixed inset-0 min-h-screen bg-white">
+                <div className="h-full">
+                    {/* Adjusted padding and layout */}
+                    <div className="px-4 pt-20 pb-2 sticky top-0 bg-white">
+                        <button
+                            onClick={handleCloseSearch}
+                            className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-full opacity-70 hover:opacity-100 transition-opacity"
+                        >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </button>
+                        
                         <div className="relative">
                             <Input 
                                 placeholder="Search sustainable brands..." 
@@ -127,8 +142,8 @@ export function Header({
                             )}
                         </div>
                     </div>
-
-                    <div className="mt-2">
+    
+                    <div className="px-4 overflow-y-auto">
                         {searchResults.length > 0 ? (
                             <>
                                 <div className="pt-2 pb-2 px-4">
@@ -226,7 +241,7 @@ export function Header({
 
                                 {/* Desktop dropdown */}
                                 {showDropdown && (
-                                    <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-sm border border-border h-[240px] overflow-y-auto">
+                                    <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-sm border border-border overflow-hidden">
                                         <div className="pt-2 pb-2 px-4">
                                             <span className="text-[12px] text-muted-foreground block mb-0">
                                                 {localSearchQuery ? 'Search results' : 'Top Sustainable Brands'}
@@ -270,7 +285,7 @@ export function Header({
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="h-full flex items-center justify-center">
+                                            <div className="h-40 flex items-center justify-center">
                                                 <span className="text-muted-foreground text-sm">
                                                     No brands found
                                                 </span>

@@ -146,17 +146,17 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
         >
           {categories.map(({ id, label, icon: Icon }) => (
             <button
-              key={id}
-              onClick={() => handleCategoryClick(id as Category)}
-              className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border transition-colors flex-shrink-0
-                ${activeCategories.includes(id as Category)
-                  ? 'bg-neutral-100 border-neutral-950 text-neutral-950' 
-                  : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950'
-                } focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2`}
-            >
-              <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm whitespace-nowrap">{label}</span>
-            </button>
+            key={id}
+            onClick={() => handleCategoryClick(id as Category)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors flex-shrink-0
+              ${activeCategories.includes(id as Category)
+                ? 'bg-neutral-100 border-neutral-950 text-neutral-950' 
+                : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950'
+              } focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2`}
+          >
+            <Icon className="h-4 w-4" /> {/* Remove sm: prefix to keep consistent size */}
+            <span className="text-sm whitespace-nowrap">{label}</span> {/* Remove text-xs variant */}
+          </button>
           ))}
         </div>
 

@@ -13,6 +13,7 @@ import { useBrands } from '@/lib/hooks/useBrands';
 import { useQueryClient } from '@tanstack/react-query';
 
 const BRANDS_PER_PAGE = 16;
+const HEADER_HEIGHT = 132;
 
 const slugify = (text: string): string => {
   return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
@@ -24,7 +25,7 @@ export default function Home(): JSX.Element {
   const [activeCategories, setActiveCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showShadow, setShowShadow] = useState(false);
-  const [isQuickFilterVisible, setIsQuickFilterVisible] = useState(true);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [showAddBrandForm, setShowAddBrandForm] = useState(false);
   const [visibleBrands, setVisibleBrands] = useState<number>(BRANDS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -50,6 +51,51 @@ export default function Home(): JSX.Element {
   const visibleBrandsList = useMemo(() => {
     return filteredBrands.slice(0, visibleBrands);
   }, [filteredBrands, visibleBrands]);
+
+  useEffect(() => {
+    if (showAddBrandForm) {
+      setIsHeaderVisible(true);
+    }
+  }, [showAddBrandForm]);
+
+  const handleScroll = useCallback(() => {
+    // Only handle scroll-based header visibility on mobile
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
+      
+      if (scrollDelta > 5) {
+        if (scrollingDown && currentScrollY > HEADER_HEIGHT && !showAddBrandForm) {
+          setIsHeaderVisible(false);
+        } else if (!scrollingDown) {
+          setIsHeaderVisible(true);
+        }
+      }
+      
+      setShowShadow(currentScrollY > 0);
+      lastScrollY.current = currentScrollY;
+    } else {
+      // Always show header on desktop
+      setIsHeaderVisible(true);
+      setShowShadow(window.scrollY > 0);
+    }
+  }, [showAddBrandForm]);
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const debouncedScroll = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleScroll, 10);
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', debouncedScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [handleScroll]);
 
   const loadMoreBrands = useCallback(() => {
     if (isLoadingMore) return;
@@ -85,35 +131,6 @@ export default function Home(): JSX.Element {
   useEffect(() => {
     setVisibleBrands(BRANDS_PER_PAGE);
   }, [activeCategories]);
-  
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    const scrollingDown = currentScrollY > lastScrollY.current;
-    
-    if (scrollingDown && currentScrollY > 100) {
-      setIsQuickFilterVisible(false);
-    } else if (!scrollingDown) {
-      setIsQuickFilterVisible(true);
-    }
-    
-    lastScrollY.current = currentScrollY;
-    setShowShadow(currentScrollY >= 5);
-  }, []);
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const debouncedScroll = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleScroll, 10);
-    };
-
-    window.addEventListener('scroll', debouncedScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', debouncedScroll);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [handleScroll]);
 
   const handleFormSubmit = useCallback(async (data: Omit<SustainableBrand, 'id'>) => {
     try {
@@ -135,36 +152,43 @@ export default function Home(): JSX.Element {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <div className="fixed inset-x-0 top-0 bg-background z-50">
-        <Header 
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          disableShadow
-          className="w-full"
-          showAddBrandForm={showAddBrandForm}
-          onShowAddBrandForm={setShowAddBrandForm}
-        />
-      </div>
-
-      <div className="h-[64px]" />
-
+      {/* Header Group with updated z-index for mobile */}
       <div 
-        className={`fixed inset-x-0 top-[64px] z-40 transition-transform duration-300 transform bg-background ${
-          isQuickFilterVisible ? 'translate-y-0' : '-translate-y-full'
+        className={`fixed inset-x-0 top-0 bg-background sm:transform-none transition-transform duration-200 ease-out transform ${
+          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
+        style={{ zIndex: 49 }}
       >
-        <div className={`bg-background w-full ${showShadow ? 'shadow-sm' : ''}`}>
-          <QuickFilter 
-            activeCategories={activeCategories}
-            onCategoryChange={setActiveCategories}
-          />
+        <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
+          {/* Header with highest z-index */}
+          <div className="relative" style={{ zIndex: 51 }}>
+            <Header 
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              disableShadow
+              className="w-full"
+              showAddBrandForm={showAddBrandForm}
+              onShowAddBrandForm={setShowAddBrandForm}
+            />
+          </div>
+          
+          {/* QuickFilter with intermediate z-index */}
+          <div className="relative" style={{ zIndex: 50 }}>
+            <QuickFilter 
+              activeCategories={activeCategories}
+              onCategoryChange={setActiveCategories}
+            />
+          </div>
         </div>
       </div>
 
-      <main className="flex-1 pt-24">
+      {/* Spacer for fixed header */}
+      <div className="h-[132px]" />
+
+      <main className="flex-1">
         <div className="px-4 sm:px-20">
           {activeCategories.length === 0 && !isLoading && filteredBrands.length > 0 && (
-            <div className="text-center mb-6 sm:mb-12">
+            <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
                 Discover Tomorrow&apos;s India
                 <br />
@@ -224,6 +248,12 @@ export default function Home(): JSX.Element {
 
       <Footer onShowAddBrandForm={setShowAddBrandForm} />
 
+      <AddBrandForm 
+        isOpen={showAddBrandForm}
+        onClose={() => setShowAddBrandForm(false)}
+        onSubmit={handleFormSubmit}
+      />
+
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed bottom-0 left-0 bg-background/5 text-foreground p-2 text-xs border-t border-border">
           <div>Active Categories: {activeCategories.join(', ') || 'None'}</div>
@@ -233,12 +263,6 @@ export default function Home(): JSX.Element {
           <div>Filtered Total: {filteredBrands.length}</div>
         </div>
       )}
-
-      <AddBrandForm 
-        isOpen={showAddBrandForm}
-        onClose={() => setShowAddBrandForm(false)}
-        onSubmit={handleFormSubmit}
-      />
     </div>
   );
 }

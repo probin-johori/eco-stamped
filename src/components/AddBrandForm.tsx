@@ -156,97 +156,103 @@ export function AddBrandForm({ isOpen, onClose, onSubmit }: AddBrandFormProps) {
             
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent 
-                    className="sm:max-w-[525px] h-full sm:h-auto relative p-4 data-[state=open]:sm:slide-in-from-bottom-0 fixed bottom-0 sm:bottom-auto sm:fixed sm:left-[50%] sm:top-[50%] sm:-translate-x-[50%] sm:-translate-y-[50%] overflow-y-auto max-w-full"
+                    className="sm:max-w-[525px] h-full sm:h-auto relative p-6 sm:p-6 data-[state=open]:sm:slide-in-from-bottom-0 fixed bottom-0 sm:bottom-auto sm:fixed sm:left-[50%] sm:top-[50%] sm:-translate-x-[50%] sm:-translate-y-[50%] overflow-y-auto max-w-full border-0 sm:border"
                     style={{ zIndex: 60 }}
                 >
                     <button
                         onClick={handleClose}
-                        className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+                        className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none bg-transparent"
                     >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Close</span>
                     </button>
-                    <div className="sm:mt-0 mt-12">
-                        <DialogHeader className="space-y-0 mb-8">
-                            <DialogTitle className="text-2xl text-left break-words">Join the Eco Revolution</DialogTitle>
-                            <DialogDescription className="text-muted-foreground text-sm text-left">
-                                Know an amazing eco-friendly brand? Help us spotlight the businesses making sustainability their mission.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="brandName" className="text-sm font-medium">
-                                        Brand Name
-                                        <span className="text-destructive"> *</span>
-                                    </Label>
-                                    <Input
-                                        ref={nameInputRef}
-                                        id="brandName"
-                                        placeholder="Enter your brand name"
-                                        value={formData.brandName}
-                                        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-                                        className="rounded-lg focus-visible:ring-ring"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor="website" className="text-sm font-medium">
-                                        Website URL
-                                        <span className="text-destructive"> *</span>
-                                    </Label>
-                                    <Input
-                                        id="website"
-                                        type="text"
-                                        placeholder="https://"
-                                        value={formData.website}
-                                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                        className="rounded-lg focus-visible:ring-ring bg-background text-foreground"
-                                        style={{ WebkitTextFillColor: 'currentcolor' }}
-                                        spellCheck="false"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor="submitterName" className="text-sm font-medium">
-                                        Your Name
-                                        <span className="text-destructive"> *</span>
-                                    </Label>
-                                    <Input
-                                        id="submitterName"
-                                        placeholder="Enter your full name"
-                                        value={formData.submitterName}
-                                        onChange={(e) => setFormData({ ...formData, submitterName: e.target.value })}
-                                        className="rounded-lg focus-visible:ring-ring"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor="submitterEmail" className="text-sm font-medium">
-                                        Your Email
-                                        <span className="text-destructive"> *</span>
-                                    </Label>
-                                    <Input
-                                        id="submitterEmail"
-                                        type="email"
-                                        placeholder="your@email.com"
-                                        value={formData.submitterEmail}
-                                        onChange={(e) => setFormData({ ...formData, submitterEmail: e.target.value })}
-                                        className="rounded-lg focus-visible:ring-ring"
-                                    />
-                                </div>
-                                <p className="text-sm text-muted-foreground text-left">
-                                    Submit 50 verified eco-friendly brands to earn rewards. We&apos;ll track your progress via email.
-                                </p>
+
+                    <DialogHeader className="space-y-0 mb-0">
+                        <DialogTitle className="text-2xl text-left break-words pt-20">Join the Eco Revolution</DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-sm text-left">
+                            Know an amazing eco-friendly brand? Help us spotlight the businesses making sustainability their mission.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="brandName" className="text-sm font-medium">
+                                    Brand Name
+                                    <span className="text-destructive"> *</span>
+                                </Label>
+                                <Input
+                                    ref={nameInputRef}
+                                    id="brandName"
+                                    placeholder="Enter your brand name"
+                                    value={formData.brandName}
+                                    onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+                                    className="rounded-lg focus-visible:ring-ring text-base"
+                                    style={{ fontSize: '16px' }}
+                                />
                             </div>
-                            <div className="flex justify-center">
-                                <Button
-                                    type="submit"
-                                    className="rounded-full px-8"
-                                    disabled={!isFormValid}
-                                >
-                                    Submit
-                                </Button>
+                            <div className="space-y-1">
+                                <Label htmlFor="website" className="text-sm font-medium">
+                                    Website URL
+                                    <span className="text-destructive"> *</span>
+                                </Label>
+                                <Input
+                                    id="website"
+                                    type="text"
+                                    placeholder="https://"
+                                    value={formData.website}
+                                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                                    className="rounded-lg focus-visible:ring-ring text-base bg-background text-foreground"
+                                    style={{ 
+                                        WebkitTextFillColor: 'currentcolor',
+                                        fontSize: '16px'
+                                    }}
+                                    spellCheck="false"
+                                />
                             </div>
-                        </form>
-                    </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="submitterName" className="text-sm font-medium">
+                                    Your Name
+                                    <span className="text-destructive"> *</span>
+                                </Label>
+                                <Input
+                                    id="submitterName"
+                                    placeholder="Enter your full name"
+                                    value={formData.submitterName}
+                                    onChange={(e) => setFormData({ ...formData, submitterName: e.target.value })}
+                                    className="rounded-lg focus-visible:ring-ring text-base"
+                                    style={{ fontSize: '16px' }}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="submitterEmail" className="text-sm font-medium">
+                                    Your Email
+                                    <span className="text-destructive"> *</span>
+                                </Label>
+                                <Input
+                                    id="submitterEmail"
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    value={formData.submitterEmail}
+                                    onChange={(e) => setFormData({ ...formData, submitterEmail: e.target.value })}
+                                    className="rounded-lg focus-visible:ring-ring text-base"
+                                    style={{ fontSize: '16px' }}
+                                />
+                            </div>
+                            <p className="text-sm text-muted-foreground text-left">
+                                Submit 50 verified eco-friendly brands to earn rewards. We&apos;ll track your progress via email.
+                            </p>
+                        </div>
+                        <div className="flex justify-center">
+                            <Button
+                                type="submit"
+                                className="rounded-full px-8"
+                                disabled={!isFormValid}
+                            >
+                                Submit
+                            </Button>
+                        </div>
+                    </form>
                 </DialogContent>
             </Dialog>
         </>
