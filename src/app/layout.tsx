@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { QueryProvider } from '@/lib/providers/QueryProvider';
 import { ReactNode } from 'react';
+import { Analytics } from "@vercel/analytics/react";
 
 // Instead of namespace, we'll use a proper type declaration
 import type { DetailedHTMLProps, HtmlHTMLAttributes } from 'react';
