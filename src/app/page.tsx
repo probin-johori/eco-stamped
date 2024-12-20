@@ -1,101 +1,245 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { Category, type SustainableBrand } from '@/lib/brands';
+import { BrandCard } from '@/components/BrandCard';
+import { BrandCardSkeleton } from '@/components/BrandCardSkeleton';
+import { Header } from '@/components/Header';
+import { QuickFilter } from "@/components/QuickFilter";
+import { Footer } from '@/components/Footer';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { AddBrandForm } from '@/components/AddBrandForm';
+import { useRouter } from 'next/navigation';
+import { useBrands } from '@/lib/hooks/useBrands';
+import { useQueryClient } from '@tanstack/react-query';
+
+const BRANDS_PER_PAGE = 16;
+
+const slugify = (text: string): string => {
+  return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+};
+
+export default function Home(): JSX.Element {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [activeCategories, setActiveCategories] = useState<Category[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showShadow, setShowShadow] = useState(false);
+  const [isQuickFilterVisible, setIsQuickFilterVisible] = useState(true);
+  const [showAddBrandForm, setShowAddBrandForm] = useState(false);
+  const [visibleBrands, setVisibleBrands] = useState<number>(BRANDS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  const lastScrollY = useRef(0);
+  const gridStartRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const { data: brands = [], isLoading, error } = useBrands();
+
+  const handleBrandClick = useCallback((brand: SustainableBrand) => {
+    router.push(`/${slugify(brand.name)}`);
+  }, [router]);
+
+  const filteredBrands = useMemo(() => {
+    if (activeCategories.length === 0) return brands;
+    
+    return brands.filter(brand => 
+      activeCategories.some(category => brand.categories.includes(category))
+    );
+  }, [brands, activeCategories]);
+
+  const visibleBrandsList = useMemo(() => {
+    return filteredBrands.slice(0, visibleBrands);
+  }, [filteredBrands, visibleBrands]);
+
+  const loadMoreBrands = useCallback(() => {
+    if (isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleBrands(prev => {
+        const next = prev + BRANDS_PER_PAGE;
+        return Math.min(next, filteredBrands.length);
+      });
+      setIsLoadingMore(false);
+    }, 500);
+  }, [isLoadingMore, filteredBrands]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) {
+          loadMoreBrands();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMoreBrands]);
+
+  useEffect(() => {
+    setVisibleBrands(BRANDS_PER_PAGE);
+  }, [activeCategories]);
+  
+  const handleScroll = useCallback(() => {
+    const currentScrollY = window.scrollY;
+    const scrollingDown = currentScrollY > lastScrollY.current;
+    
+    // Show QuickFilter immediately when scrolling up
+    // Hide it when scrolling down (after a small threshold)
+    if (scrollingDown && currentScrollY > 100) {
+      setIsQuickFilterVisible(false);
+    } else if (!scrollingDown) {
+      setIsQuickFilterVisible(true);
+    }
+    
+    lastScrollY.current = currentScrollY;
+    setShowShadow(currentScrollY >= 5);
+  }, []);
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const debouncedScroll = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleScroll, 10);
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', debouncedScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [handleScroll]);
+
+  const handleFormSubmit = useCallback(async (formData: Omit<SustainableBrand, 'id'>) => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['brands'] });
+      setShowAddBrandForm(false);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+    }
+  }, [queryClient]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <p className="text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load brands'}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="fixed inset-x-0 top-0 bg-background z-50">
+        <Header 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          disableShadow
+          className="w-full"
+          showAddBrandForm={showAddBrandForm}
+          onShowAddBrandForm={setShowAddBrandForm}
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="h-[64px]" /> {/* Precise spacer for header height */}
+
+      <div 
+        className={`fixed inset-x-0 top-[64px] z-40 transition-transform duration-300 transform bg-background ${
+          isQuickFilterVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <div className={`bg-background w-full ${showShadow ? 'shadow-sm' : ''}`}>
+          <QuickFilter 
+            activeCategories={activeCategories}
+            onCategoryChange={setActiveCategories}
+          />
+        </div>
+      </div>
+
+      <main className="flex-1 pt-24">
+        <div className="px-4 sm:px-20">
+          {activeCategories.length === 0 && !isLoading && filteredBrands.length > 0 && (
+            <div className="text-center mb-6 sm:mb-12">
+              <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
+                Discover Tomorrow's India
+                <br />
+                with Eco-Champions
+              </h1>
+            </div>
+          )}
+
+          {!isLoading && filteredBrands.length === 0 && (
+            <div className="text-center py-16">
+              <h2 className="text-2xl font-semibold text-foreground mb-3">
+                We're Growing Our Directory
+              </h2>
+              <p className="text-muted-foreground text-md max-w-2xl mx-auto">
+                We're in the process of making our sustainable brands directory 
+                as extensive as possible. Know an amazing eco-friendly brand 
+                that should be featured here? Help us grow the community!
+              </p>
+            </div>
+          )}
+
+          {(isLoading || filteredBrands.length > 0) && (
+            <div 
+              ref={gridStartRef} 
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+            >
+              {isLoading ? (
+                Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
+                  <BrandCardSkeleton key={index} />
+                ))
+              ) : (
+                visibleBrandsList.map((brand) => (
+                  <BrandCard 
+                    key={brand.id} 
+                    brand={brand}
+                    onClick={() => handleBrandClick(brand)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {!isLoading && visibleBrands < filteredBrands.length && (
+            <div 
+              ref={loadMoreRef}
+              className="text-center py-8"
+            >
+              {isLoadingMore ? (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+              ) : (
+                <p className="text-muted-foreground">Loading more brands...</p>
+              )}
+            </div>
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer onShowAddBrandForm={setShowAddBrandForm} />
+
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-0 left-0 bg-background/5 text-foreground p-2 text-xs border-t border-border">
+          <div>Active Categories: {activeCategories.join(', ') || 'None'}</div>
+          <div>Search Query: {searchQuery || 'None'}</div>
+          <div>Total Brands: {brands.length}</div>
+          <div>Visible Brands: {visibleBrandsList.length}</div>
+          <div>Filtered Total: {filteredBrands.length}</div>
+        </div>
+      )}
+
+      <AddBrandForm 
+        isOpen={showAddBrandForm}
+        onClose={() => setShowAddBrandForm(false)}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 }

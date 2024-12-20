@@ -1,21 +1,146 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+ 
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+ 
+    --primary: 162 100% 20%;
+    --primary-foreground: 0 0% 98%;
+ 
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+ 
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+ 
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+ 
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+ 
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+ 
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+ 
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+ 
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+ 
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+
+  :not(img)::selection {
+    background-color: #90EE90;
+    color: black;
+  }
+
+  :not(img)::-moz-selection {
+    background-color: #90EE90;
+    color: black;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
+ 
+@layer components {
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    /* Darker base color for more contrast */
+    background: hsl(var(--muted) / 0.9);
+  }
+
+  .shimmer::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    /* Brighter shimmer gradient with more contrast */
+    background-image: linear-gradient(
+      90deg,
+      transparent 0,
+      hsl(var(--background) / 0.4) 20%,
+      hsl(var(--background) / 0.8) 60%,
+      transparent
+    );
+    animation: shimmer 2s infinite;
+    content: '';
+  }
+
+  .dark .shimmer {
+    /* Darker base in dark mode */
+    background: hsl(var(--secondary) / 0.8);
+  }
+
+  .dark .shimmer::after {
+    /* More pronounced shimmer in dark mode */
+    background-image: linear-gradient(
+      90deg,
+      transparent 0,
+      hsl(var(--background) / 0.2) 20%,
+      hsl(var(--background) / 0.4) 60%,
+      transparent
+    );
+  }
+
+  .DialogOverlay {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(1px);
+  }
+  
+  .DialogContent {
+    z-index: 51;
+  }
 }
