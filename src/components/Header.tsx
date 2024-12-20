@@ -106,13 +106,11 @@ export function Header({
         setShowDropdown(false);
         setShowMobileSearch(false);
     };
-
     // Mobile Search Overlay Component
     const MobileSearchOverlay = () => (
         <div className="fixed inset-0 z-[60]">
             <div className="fixed inset-0 min-h-screen bg-white">
                 <div className="h-full">
-                    {/* Adjusted padding and layout */}
                     <div className="px-4 pt-20 pb-2 sticky top-0 bg-white">
                         <button
                             onClick={handleCloseSearch}
@@ -146,24 +144,24 @@ export function Header({
                     <div className="px-4 overflow-y-auto">
                         {searchResults.length > 0 ? (
                             <>
-                                <div className="pt-4 pb-2 px-4">
+                                <div className="pt-4 pb-2">
                                     <span className="text-sm text-muted-foreground block mb-0">
                                         {localSearchQuery ? 'Search results' : 'Top Sustainable Brands'}
                                     </span>
                                 </div>
-                                <div className="px-2">
+                                <div>
                                     {searchResults.map((brand) => (
                                         <Link 
                                             href={`/${slugify(brand.name)}`}
                                             key={brand.id}
-                                            className="flex items-center gap-3 p-2 hover:bg-muted rounded-md"
+                                            className="flex items-center gap-3 p-2 hover:bg-muted"
                                             onClick={() => {
                                                 setShowDropdown(false);
                                                 setLocalSearchQuery('');
                                                 setShowMobileSearch(false);
                                             }}
                                         >
-                                            <div className="w-8 h-8 relative rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                                            <div className="w-12 h-12 relative rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
                                                 {brand.logo ? (
                                                     <Image
                                                         src={brand.logo}
@@ -173,13 +171,13 @@ export function Header({
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
-                                                        <span className="text-sm font-medium text-neutral-400">
+                                                        <span className="text-base font-medium text-neutral-400">
                                                             {brand.name.charAt(0)}
                                                         </span>
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="text-sm text-foreground">
+                                            <div className="text-base text-foreground">
                                                 {brand.name}
                                             </div>
                                         </Link>
@@ -354,7 +352,6 @@ export function Header({
                     </div>
                 </div>
             </div>
-
             {/* Mobile search overlay */}
             {showMobileSearch && <MobileSearchOverlay />}
         </>
