@@ -239,7 +239,7 @@ export default function BrandPage({ params }: Props) {
                 <div className="text-xl sm:text-4xl font-bold text-foreground">{brand.name}</div>
                 {hasCategories && (
                   <div className="mt-0">
-                    <span className="text-sm sm:text-base text-muted-foreground leading-none">
+                    <span className="text-base sm:text-base text-muted-foreground leading-none">
                       {brand.categories.map((category, index) => (
                         <span key={category}>
                           {category}
@@ -255,13 +255,13 @@ export default function BrandPage({ params }: Props) {
             {hasAbout && (
               <div className="w-full sm:max-w-[50%] space-y-2 mx-auto text-center">
                 <div>
-                  <div className={`text-sm sm:text-base text-foreground ${!isExpanded ? 'line-clamp-3 sm:line-clamp-2' : ''}`}>
+                  <div className={`text-base sm:text-base text-foreground ${!isExpanded ? 'line-clamp-3 sm:line-clamp-2' : ''}`}>
                     {brand.content.about}
                   </div>
                   {!isExpanded && brand.content.about.split(' ').length > 30 && (
                     <button
                       onClick={() => setIsExpanded(true)}
-                      className="text-sm sm:text-base text-primary hover:text-primary/80 font-medium mt-0.5"
+                      className="text-base sm:text-base text-primary hover:text-primary/80 font-medium mt-0.5"
                     >
                       More
                     </button>
@@ -269,7 +269,7 @@ export default function BrandPage({ params }: Props) {
                   {isExpanded && (
                     <button
                       onClick={() => setIsExpanded(false)}
-                      className="text-sm sm:text-base text-primary hover:text-primary/80 font-medium mt-1"
+                      className="text-base sm:text-base text-primary hover:text-primary/80 font-medium mt-1"
                     >
                       Less
                     </button>
@@ -322,7 +322,7 @@ export default function BrandPage({ params }: Props) {
                   {hasImpact && (
                     <div>
                       <div className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4 text-foreground">Impact</div>
-                      <div className="text-sm sm:text-base text-foreground">
+                      <div className="text-base sm:text-base text-foreground">
                         {brand.content.impact}
                       </div>
                     </div>

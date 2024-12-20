@@ -15,6 +15,7 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
   const [currentFullscreenIndex, setCurrentFullscreenIndex] = useState(0);
   const [loadedMainImage, setLoadedMainImage] = useState(false);
   const fullscreenThumbnailsRef = useRef<HTMLDivElement>(null);
+  const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
 
   const getImagePath = (image: BrandImage) => {
     if (!image?.url) return '';
@@ -30,6 +31,18 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
         const thumbnailWidth = thumbnail.clientWidth;
         const scrollLeft = thumbnailLeft - (containerWidth / 2) + (thumbnailWidth / 2);
         fullscreenThumbnailsRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleMobileScroll = () => {
+    if (mobileScrollContainerRef.current) {
+      const container = mobileScrollContainerRef.current;
+      const scrollLeft = container.scrollLeft;
+      const containerWidth = container.clientWidth;
+      const newIndex = Math.round(scrollLeft / containerWidth);
+      if (newIndex !== currentFullscreenIndex) {
+        setCurrentFullscreenIndex(newIndex);
       }
     }
   };
@@ -60,7 +73,23 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
   useEffect(() => {
     if (isFullscreen) {
       document.body.style.overflow = 'hidden';
-      scrollToFullscreenThumbnail(currentFullscreenIndex);
+
+      // Scroll main image
+      if (mobileScrollContainerRef.current) {
+        const container = mobileScrollContainerRef.current;
+        container.scrollLeft = currentFullscreenIndex * container.clientWidth;
+      }
+
+      // Auto scroll thumbnail into view
+      const thumbnailContainer = document.querySelector('.thumbnail-scroll');
+      const activeThumb = thumbnailContainer?.children[currentFullscreenIndex] as HTMLElement;
+      if (thumbnailContainer && activeThumb) {
+        const scrollLeft = activeThumb.offsetLeft - (thumbnailContainer.clientWidth / 2) + (activeThumb.clientWidth / 2);
+        thumbnailContainer.scrollTo({
+          left: scrollLeft,
+          behavior: 'smooth'
+        });
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -150,7 +179,7 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
 
         {/* Mobile Layout */}
         <div className="sm:hidden">
-          <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 gap-1"
+          <div className="flex overflow-x-auto scrollbar-none -mx-4 px-4 gap-1"
             style={{ 
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -213,10 +242,24 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
           <div className="sm:hidden flex flex-col h-full">
             {/* Main image scroll container */}
             <div className="flex-1">
-              <div className="h-[50vh] overflow-x-auto snap-x snap-mandatory no-scrollbar">
-                <div className="flex h-full">
+              <div className="h-[50vh] overflow-hidden">
+                <div 
+                  ref={mobileScrollContainerRef}
+                  className="flex h-full w-full overflow-x-auto scrollbar-none"
+                  style={{ 
+                    scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}
+                  onScroll={handleMobileScroll}
+                >
                   {images.map((_, index) => (
-                    <div key={index} className="flex-none w-full h-full snap-center">
+                    <div 
+                      key={index} 
+                      className="flex-none w-full h-full"
+                      style={{ scrollSnapAlign: 'start' }}
+                    >
                       <div className="h-full relative">
                         {renderMedia(index, true)}
                       </div>
@@ -228,22 +271,50 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
 
             {/* Description and thumbnails */}
             <div className="p-4 bg-black/75">
-              <p className="text-white/90 text-sm mb-4">
+              <p className="text-white/90 text-sm mb-8 text-center">
                 {images[currentFullscreenIndex]?.description}
               </p>
               
               {/* Thumbnails row */}
-              <div className="mx-10">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              <div className="px-0">
+                <div 
+                  className="flex gap-2 overflow-x-auto scrollbar-none px-4 py-2 thumbnail-scroll"
+                  style={{ 
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}
+                >
                   {images.map((_, index) => (
                     <button
                       key={index}
-                      onClick={() => setCurrentFullscreenIndex(index)}
-                      className={`relative h-16 aspect-square flex-shrink-0 rounded-lg overflow-hidden 
+                      onClick={() => {
+                        // Update current index
+                        setCurrentFullscreenIndex(index);
+
+                        // Scroll main image
+                        if (mobileScrollContainerRef.current) {
+                          const container = mobileScrollContainerRef.current;
+                          container.scrollLeft = index * container.clientWidth;
+                        }
+
+                        // Scroll thumbnail into view
+                        const button = document.activeElement as HTMLButtonElement;
+                        if (button) {
+                          const parent = button.parentElement;
+                          if (parent) {
+                            const scrollLeft = button.offsetLeft - (parent.clientWidth / 2) + (button.clientWidth / 2);
+                            parent.scrollTo({
+                              left: scrollLeft,
+                              behavior: 'smooth'
+                            });
+                          }
+                        }
+                      }}
+                      className={`relative h-14 aspect-square flex-shrink-0 rounded-lg overflow-hidden 
                         transition-all duration-200 ${
                         index === currentFullscreenIndex 
-                          ? 'ring-2 ring-white' 
-                          : 'opacity-50'
+                          ? 'ring-2 ring-white scale-105' 
+                          : 'opacity-50 hover:opacity-70'
                       }`}
                     >
                       {renderMedia(index)}
@@ -254,7 +325,7 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
             </div>
           </div>
 
-          {/* Desktop fullscreen layout */}
+          {/* Desktop fullscreen layout - unchanged */}
           <div className="hidden sm:flex flex-1 flex-col">
             <div className="flex-1 relative py-8">
               {currentFullscreenIndex > 0 && (
@@ -305,7 +376,7 @@ export function ImageGallery({ images, brandName }: ImageGalleryProps) {
             <div className="p-4 flex justify-center">
               <div 
                 ref={fullscreenThumbnailsRef}
-                className="flex gap-2 p-2 bg-neutral-800 rounded-2xl overflow-x-auto scroll-smooth no-scrollbar"
+                className="flex gap-2 p-2 bg-neutral-800 rounded-2xl overflow-x-auto scroll-smooth scrollbar-none"
               >
                 {images.map((_, index) => (
                   <button
