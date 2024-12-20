@@ -10,7 +10,7 @@ import type { FieldSet, Attachment } from 'airtable';
 
 const TABLES = {
   BRANDS: AIRTABLE_CONFIG.tables.BRANDS,
-  RETAILERS: 'tblbobbpQEss4b0Zm'
+  RETAILERS: AIRTABLE_CONFIG.tables.RETAILERS
 };
 
 interface RetailerInfo {
@@ -53,38 +53,46 @@ const mapAirtableToCategory = (value: string): Category => {
 export class AirtableService {
   static async fetchRetailers(): Promise<RetailerInfo[]> {
     try {
-      console.log('Fetching retailers from table:', TABLES.RETAILERS);
+      console.log('Fetching retailers - Config:', {
+        hasToken: !!AIRTABLE_CONFIG.token,
+        baseId: AIRTABLE_CONFIG.baseId,
+        tableId: TABLES.RETAILERS
+      });
+
       const table = airtableBase(TABLES.RETAILERS);
       const records = await table.select().all();
 
-      console.log('Found retailers:', records.length);
-
-      const retailers = records.map(record => {
-        const retailerInfo = {
-          id: record.id,
-          name: record.fields.Name as Marketplace,
-          logo: (record.fields.Logo as unknown as Attachment[])?.[0]?.url || '',
-          website: record.fields.Website as string
-        };
-
-        console.log('Processed retailer:', {
-          id: retailerInfo.id,
-          name: retailerInfo.name,
-          hasLogo: !!retailerInfo.logo
-        });
-
-        return retailerInfo;
+      console.log('Retailers fetch response:', {
+        recordCount: records.length,
+        hasRecords: records.length > 0,
+        firstRecord: records[0]?.id
       });
 
-      return retailers;
+      return records.map(record => ({
+        id: record.id,
+        name: record.fields.Name as Marketplace,
+        logo: (record.fields.Logo as unknown as Attachment[])?.[0]?.url || '',
+        website: record.fields.Website as string
+      }));
     } catch (error) {
-      console.error('Error fetching retailers:', error);
+      console.error('Retailer fetch error:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return [];
     }
   }
 
   static async fetchAllBrands(): Promise<SustainableBrand[]> {
     try {
+      console.log('Fetching brands - Config:', {
+        hasToken: !!AIRTABLE_CONFIG.token,
+        tokenLength: AIRTABLE_CONFIG.token?.length,
+        baseId: AIRTABLE_CONFIG.baseId,
+        tableId: TABLES.BRANDS
+      });
+
       if (!AIRTABLE_CONFIG.token) {
         throw new Error('Airtable token is missing');
       }
@@ -92,19 +100,19 @@ export class AirtableService {
         throw new Error('Airtable base ID is missing');
       }
 
-      console.log('Starting to fetch brands with config:', {
-        hasToken: !!AIRTABLE_CONFIG.token,
-        baseId: AIRTABLE_CONFIG.baseId,
-        tableId: AIRTABLE_CONFIG.tables.BRANDS
+      const table = airtableBase(TABLES.BRANDS);
+      console.log('Table instance created:', {
+        hasBase: !!table,
+        baseConfig: !!table._base
       });
 
-      const table = airtableBase(TABLES.BRANDS);
       const records = await table.select().all();
       const retailers = await AirtableService.fetchRetailers();
       
-      console.log('Fetched records:', {
-        count: records.length,
-        firstRecordFields: records[0]?.fields 
+      console.log('Brands fetch response:', {
+        recordCount: records.length,
+        hasRecords: records.length > 0,
+        firstRecord: records[0]?.id
       });
 
       return records.map(record => {
@@ -113,16 +121,7 @@ export class AirtableService {
         console.log('Processing brand:', {
           name: fields.Name,
           isCuratorsPick: fields.IsCuratorsPick,
-          isCuratorsPickType: typeof fields.IsCuratorsPick,
-          rawFields: {
-            productRange: fields.ProductRange,
-            certifications: fields.Certifications,
-            categories: fields.Categories,
-            sustainableFeatures: fields.SustainableFeatures,
-            logo: fields.Logo,
-            cover: fields.Cover,
-            founderImages: fields.FounderImages
-          }
+          fieldsAvailable: Object.keys(fields)
         });
 
         try {
@@ -234,26 +233,21 @@ export class AirtableService {
             }
           };
 
-          console.log('Processed brand:', {
-            name: brand.name,
-            isCuratorsPick: brand.isCuratorsPick,
-            isCuratorsPickType: typeof brand.isCuratorsPick
-          });
-
           return brand;
         } catch (parseError) {
           console.error('Error parsing record:', {
             recordId: record.id,
             error: parseError,
-            fields: JSON.stringify(fields, null, 2)
+            fields: Object.keys(fields)
           });
           throw parseError;
         }
       });
     } catch (error) {
-      console.error('Error fetching brands:', {
+      console.error('Brand fetch error:', {
         error,
         message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
         config: {
           hasToken: !!AIRTABLE_CONFIG.token,
           baseId: AIRTABLE_CONFIG.baseId,
@@ -317,6 +311,7 @@ export class AirtableService {
       console.error('Error creating brand:', {
         error,
         message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }
@@ -367,10 +362,12 @@ export class AirtableService {
       if (data.retailers) {
         const retailers = await AirtableService.fetchRetailers();
         const retailerIds = data.retailers
-          .map(retailer => retailers.find(r => r.name === retailer.marketplace)?.id
+          .map(retailer => 
+            retailers.find(r => r.name === retailer.marketplace)?.id
           )
-          .filter(id => id) as unknown as string
-          airtableData.Retailers = retailerIds;
+          .filter(id => id) as string[];
+
+        airtableData.Retailers = retailerIds;
         airtableData.Retailers_URLs = data.retailers.map(r => r.url).join(';');
       }
       if (data.origin?.city) airtableData.Origin_City = data.origin.city;
@@ -382,7 +379,8 @@ export class AirtableService {
       console.error('Error updating brand:', {
         brandId,
         error,
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }
@@ -396,7 +394,8 @@ export class AirtableService {
       console.error('Error deleting brand:', {
         brandId,
         error,
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }
@@ -404,18 +403,28 @@ export class AirtableService {
 
   static async testConnection(): Promise<boolean> {
     try {
-      console.log('Testing Airtable connection...');
-      const table = airtableBase(TABLES.BRANDS);
-      const records = await table.select({ maxRecords: 1 }).firstPage();
-      console.log('Connection test successful:', {
-        recordsFound: records.length,
+      console.log('Testing Airtable connection with config:', {
+        hasToken: !!AIRTABLE_CONFIG.token,
+        baseId: AIRTABLE_CONFIG.baseId,
         tableId: TABLES.BRANDS
       });
+
+      const table = airtableBase(TABLES.BRANDS);
+      const records = await table.select({ maxRecords: 1 }).firstPage();
+      
+      console.log('Connection test successful:', {
+        recordsFound: records.length,
+        tableId: TABLES.BRANDS,
+        hasRecords: records.length > 0,
+        firstRecord: records[0]?.id
+      });
+      
       return true;
     } catch (error) {
       console.error('Connection test failed:', {
         error,
         message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
         config: {
           hasToken: !!AIRTABLE_CONFIG.token,
           baseId: AIRTABLE_CONFIG.baseId,
