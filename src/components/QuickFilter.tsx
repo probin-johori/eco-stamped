@@ -158,7 +158,7 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
               onClick={() => handleCategoryClick(id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors flex-shrink-0
                 ${activeCategory === id
-                  ? 'bg-neutral-100 border-neutral-950 text-neutral-950' 
+                  ? 'bg-neutral-50 border-neutral-950 text-neutral-950' 
                   : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950'
                 } focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2`}
             >
