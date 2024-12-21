@@ -6,15 +6,22 @@ import {
   Shirt, Soup, Home, EyeClosed, Baby, Gift, Heart, Pencil, Dog, Plane,
   Flower2, BookOpen, Car, Scissors, Palette, Sofa, ScrollText, Tractor,
   Gem, Footprints, Sparkles, Monitor, MountainSnow, ChevronRight, ChevronLeft,
-  X, Glasses, Volleyball, SwatchBook
+  X, Glasses, Volleyball, SwatchBook, LayoutGrid
 } from "lucide-react";
+import type { LucideIcon } from 'lucide-react';
 
-interface QuickFilterProps {
-  activeCategories: Category[];
-  onCategoryChange: (categories: Category[]) => void;
+interface CategoryItem {
+  id: Category | 'eco-champion' | null;
+  label: string;
+  icon: LucideIcon;
 }
 
-export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFilterProps) => {
+interface QuickFilterProps {
+  activeCategory: Category | 'eco-champion' | null;
+  onCategoryChange: (category: Category | 'eco-champion' | null) => void;
+}
+
+export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFilterProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -22,7 +29,9 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
   const [hasScrollShadow, setHasScrollShadow] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const categories = [
+  const categories: CategoryItem[] = [
+    { id: null, label: 'All', icon: LayoutGrid },
+    { id: 'eco-champion', label: 'Eco Champion', icon: Sparkles },
     { id: Category.CLOTHING, label: 'Clothing', icon: Shirt },
     { id: Category.ACCESSORIES, label: 'Accessories', icon: Glasses },
     { id: Category.FOOD_BEVERAGE, label: 'Food & Beverage', icon: Soup },
@@ -47,15 +56,14 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
     { id: Category.TEXTILES, label: 'Textiles', icon: ScrollText },
     { id: Category.FARMING, label: 'Farming', icon: Tractor },
     { id: Category.JEWELRY, label: 'Jewelry', icon: Gem },
-    { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints },
-    { id: Category.CLEANING, label: 'Cleaning', icon: Sparkles }
-  ] as const;
+    { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints }
+  ];
 
-  const handleCategoryClick = (categoryId: Category) => {
-    const newCategories = activeCategories.includes(categoryId)
-      ? activeCategories.filter(c => c !== categoryId)
-      : [...activeCategories, categoryId];
-    onCategoryChange(newCategories);
+  const handleCategoryClick = (categoryId: CategoryItem['id']) => {
+    if (activeCategory !== categoryId) {
+      onCategoryChange(categoryId);
+    }
+    // Do nothing if clicking the same category
   };
 
   const checkFilterScroll = () => {
@@ -112,18 +120,18 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
 
   useEffect(() => {
     checkFilterScroll();
-  }, [activeCategories]);
+  }, [activeCategory]);
 
   return (
     <div ref={containerRef} className={`transition-shadow duration-200 ${hasScrollShadow ? "shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]" : ""}`}>
       <div className="border-t border-neutral-200" />
-      <div className={`relative bg-white ${isMobile ? 'py-2 px-4' : 'py-4'} ${!isMobile && activeCategories.length > 0 ? 'pr-44 pl-20' : !isMobile ? 'px-20' : 'px-4 sm:px-20'}`}>
+      <div className={`relative bg-white ${isMobile ? 'py-2 px-4' : 'py-4'} ${!isMobile && activeCategory ? 'pr-44 pl-20' : !isMobile ? 'px-20' : 'px-4 sm:px-20'}`}>
         {!isMobile && showLeftArrow && (
           <div className="absolute left-20 top-0 bottom-0 w-24 bg-gradient-to-r from-white via-white/70 to-transparent z-20" />
         )}
 
         {!isMobile && showRightArrow && (
-          <div className={`absolute top-0 bottom-0 w-24 bg-gradient-to-l from-white via-white/70 to-transparent z-20 ${activeCategories.length > 0 ? 'right-44' : 'right-20'}`} />
+          <div className={`absolute top-0 bottom-0 w-24 bg-gradient-to-l from-white via-white/70 to-transparent z-20 ${activeCategory ? 'right-44' : 'right-20'}`} />
         )}
         
         {!isMobile && showLeftArrow && (
@@ -146,21 +154,21 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
         >
           {categories.map(({ id, label, icon: Icon }) => (
             <button
-            key={id}
-            onClick={() => handleCategoryClick(id as Category)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors flex-shrink-0
-              ${activeCategories.includes(id as Category)
-                ? 'bg-neutral-100 border-neutral-950 text-neutral-950' 
-                : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950'
-              } focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2`}
-          >
-            <Icon className="h-4 w-4" /> {/* Remove sm: prefix to keep consistent size */}
-            <span className="text-sm whitespace-nowrap">{label}</span> {/* Remove text-xs variant */}
-          </button>
+              key={id ?? 'all'}
+              onClick={() => handleCategoryClick(id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors flex-shrink-0
+                ${activeCategory === id
+                  ? 'bg-neutral-100 border-neutral-950 text-neutral-950' 
+                  : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950'
+                } focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="text-sm whitespace-nowrap">{label}</span>
+            </button>
           ))}
         </div>
 
-        <div className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center gap-4 ${activeCategories.length > 0 ? (isMobile ? 'right-4' : 'right-20') : (isMobile ? 'right-4' : 'right-20')}`}>
+        <div className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center gap-4 ${activeCategory ? (isMobile ? 'right-4' : 'right-20') : (isMobile ? 'right-4' : 'right-20')}`}>
           {!isMobile && showRightArrow && (
             <button 
               onClick={() => scroll('right')}
@@ -170,9 +178,9 @@ export const QuickFilter = ({ activeCategories = [], onCategoryChange }: QuickFi
             </button>
           )}
           
-          {activeCategories.length > 0 && !isMobile && (
+          {activeCategory && !isMobile && (
             <button 
-              onClick={() => onCategoryChange([])}
+              onClick={() => onCategoryChange(null)}
               className="flex items-center gap-2 text-neutral-950 hover:text-neutral-700 transition-colors ml-4"
             >
               <X className="h-4 w-4" />

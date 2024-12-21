@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const BRANDS_PER_PAGE = 16;
 const HEADER_HEIGHT = 132;
+const SCROLL_THRESHOLD = 400;
 
 const slugify = (text: string): string => {
   return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
@@ -22,12 +23,15 @@ const slugify = (text: string): string => {
 export default function Home(): JSX.Element {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [activeCategories, setActiveCategories] = useState<Category[]>([]);
+  const [activeCategory, setActiveCategory] = useState<Category | 'eco-champion' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showShadow, setShowShadow] = useState(false);
   const [showAddBrandForm, setShowAddBrandForm] = useState(false);
   const [visibleBrands, setVisibleBrands] = useState<number>(BRANDS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState<number>(0);
+  const [isHeaderHidden, setIsHeaderHidden] = useState<boolean>(false);
+  const [isSelectingCategories, setIsSelectingCategories] = useState(false);
   
   const gridStartRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -39,20 +43,40 @@ export default function Home(): JSX.Element {
   }, [router]);
 
   const filteredBrands = useMemo(() => {
-    if (activeCategories.length === 0) return brands;
+    if (!activeCategory) return brands;
     
-    return brands.filter(brand => 
-      activeCategories.some(category => brand.categories.includes(category))
-    );
-  }, [brands, activeCategories]);
+    if (activeCategory === 'eco-champion') {
+      return brands.filter(brand => brand.isCuratorsPick);
+    }
+    
+    return brands.filter(brand => brand.categories.includes(activeCategory));
+  }, [brands, activeCategory]);
 
   const visibleBrandsList = useMemo(() => {
     return filteredBrands.slice(0, visibleBrands);
   }, [filteredBrands, visibleBrands]);
 
   const handleScroll = useCallback(() => {
-    setShowShadow(window.scrollY > 0);
-  }, []);
+    const currentScrollY = window.scrollY;
+    
+    // Show shadow when scrolled
+    setShowShadow(currentScrollY > 0);
+    
+    // Only update if scroll position has changed and not selecting categories
+    if (currentScrollY !== lastScrollY && !isSelectingCategories) {
+      if (currentScrollY < SCROLL_THRESHOLD) {
+        // Always show header before threshold
+        setIsHeaderHidden(false);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down & past threshold - hide header
+        setIsHeaderHidden(true);
+      } else {
+        // Scrolling up - show header
+        setIsHeaderHidden(false);
+      }
+      setLastScrollY(currentScrollY);
+    }
+  }, [lastScrollY, isSelectingCategories]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -102,7 +126,7 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     setVisibleBrands(BRANDS_PER_PAGE);
-  }, [activeCategories]);
+  }, [activeCategory]);
 
   const handleFormSubmit = useCallback(async (data: Omit<SustainableBrand, 'id'>) => {
     try {
@@ -125,7 +149,12 @@ export default function Home(): JSX.Element {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header Group */}
-      <div className="fixed inset-x-0 top-0 bg-background" style={{ zIndex: 49 }}>
+      <div 
+        className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 sm:transform-none ${
+          isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
+        }`} 
+        style={{ zIndex: 49 }}
+      >
         <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
           {/* Header with highest z-index */}
           <div className="relative" style={{ zIndex: 51 }}>
@@ -142,8 +171,15 @@ export default function Home(): JSX.Element {
           {/* QuickFilter with intermediate z-index */}
           <div className="relative" style={{ zIndex: 50 }}>
             <QuickFilter 
-              activeCategories={activeCategories}
-              onCategoryChange={setActiveCategories}
+              activeCategory={activeCategory}
+              onCategoryChange={(category) => {
+                setIsSelectingCategories(true);
+                setActiveCategory(category);
+                // Scroll to top smoothly
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Reset selecting state after a short delay
+                setTimeout(() => setIsSelectingCategories(false), 1000);
+              }}
             />
           </div>
         </div>
@@ -154,7 +190,7 @@ export default function Home(): JSX.Element {
 
       <main className="flex-1">
         <div className="px-4 sm:px-20">
-          {activeCategories.length === 0 && !isLoading && filteredBrands.length > 0 && (
+          {!activeCategory && !isLoading && filteredBrands.length > 0 && (
             <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
                 Discover Tomorrow&apos;s India
@@ -170,7 +206,7 @@ export default function Home(): JSX.Element {
                 We&apos;re Growing Our Directory
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection of eco-friendly companies more comprehensive. If you know of an amazing sustainable brand that should be featured, please share it with us. We&apos;d appreciate your help growing this community resource.
+                It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection of eco-friendly companies more comprehensive. If you know of an amazing sustainable brand that should be featured, please share it with us. We&apos;d appreciate your help growing this community resource.
               </p>
             </div>
           )}
@@ -221,7 +257,7 @@ export default function Home(): JSX.Element {
 
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed bottom-0 left-0 bg-background/5 text-foreground p-2 text-xs border-t border-border">
-          <div>Active Categories: {activeCategories.join(', ') || 'None'}</div>
+          <div>Active Category: {activeCategory || 'All'}</div>
           <div>Search Query: {searchQuery || 'None'}</div>
           <div>Total Brands: {brands.length}</div>
           <div>Visible Brands: {visibleBrandsList.length}</div>
