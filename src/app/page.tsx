@@ -186,7 +186,7 @@ export default function Home(): JSX.Element {
       </div>
 
       {/* Spacer for fixed header */}
-      <div className="h-[132px]" />
+      <div className="h-[132px] sm:h-[152px]" />
 
       <main className="flex-1">
         <div className="px-4 sm:px-20">
