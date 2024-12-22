@@ -3,11 +3,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { Category } from '@/lib/brands';
 import {
-  Shirt, Soup, Home, EyeClosed, Baby, Gift, Heart, Pencil, Dog, Plane,
-  Flower2, BookOpen, Car, Scissors, Palette, Sofa, ScrollText, Tractor,
-  Gem, Footprints, Sparkles, Monitor, MountainSnow, ChevronRight, ChevronLeft,
-  X, Glasses, Volleyball, SwatchBook, LayoutGrid,
-  Cpu
+  Shirt, Glasses, Soup, Home, EyeClosed, Monitor, Baby, MountainSnow,
+  Volleyball, Gift, Heart, Pencil, Dog, Plane, Flower2, BookOpen,
+  Car, Scissors, Palette, Sofa, SwatchBook, ScrollText, Tractor,
+  Gem, Footprints, Sparkles, ChevronRight, ChevronLeft, X, LayoutGrid,
+  Brush, Cpu
 } from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
   const [hasScrollShadow, setHasScrollShadow] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Updated categories array to match the enum exactly
   const categories: CategoryItem[] = [
     { id: null, label: 'All', icon: LayoutGrid },
     { id: 'eco-champion', label: 'Eco Champion', icon: Sparkles },
@@ -58,14 +59,14 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
     { id: Category.FARMING, label: 'Farming', icon: Tractor },
     { id: Category.JEWELRY, label: 'Jewelry', icon: Gem },
     { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints },
-    { id: Category.TECHNOLOGY, label: 'Technology', icon: Cpu}
+    { id: Category.CLEANING, label: 'Cleaning', icon: Brush },
+    { id: Category.TECHNOLOGY, label: 'Technology', icon: Cpu }
   ];
 
   const handleCategoryClick = (categoryId: CategoryItem['id']) => {
     if (activeCategory !== categoryId) {
       onCategoryChange(categoryId);
     }
-    // Do nothing if clicking the same category
   };
 
   const checkFilterScroll = () => {
