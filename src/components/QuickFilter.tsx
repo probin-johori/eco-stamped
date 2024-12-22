@@ -7,7 +7,8 @@ import {
   Volleyball, Gift, Heart, Pencil, Dog, Plane, Flower2, BookOpen,
   Car, Scissors, Palette, Sofa, SwatchBook, ScrollText, Tractor,
   Gem, Footprints, Sparkles, ChevronRight, ChevronLeft, X, LayoutGrid,
-  Brush, Cpu
+  Brush, Cpu,
+  Paintbrush
 } from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
 
@@ -40,7 +41,7 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
     { id: Category.HOME, label: 'Home', icon: Home },
     { id: Category.BEAUTY, label: 'Beauty', icon: EyeClosed },
     { id: Category.ELECTRONICS, label: 'Electronics', icon: Monitor },
-    { id: Category.TOYS, label: 'Toys', icon: Baby },
+    { id: Category.TOYS, label: 'Kids & Toys', icon: Baby },
     { id: Category.OUTDOOR, label: 'Outdoor', icon: MountainSnow },
     { id: Category.SPORTS, label: 'Sports', icon: Volleyball },
     { id: Category.GIFTS, label: 'Gifts', icon: Gift },
@@ -59,7 +60,7 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
     { id: Category.FARMING, label: 'Farming', icon: Tractor },
     { id: Category.JEWELRY, label: 'Jewelry', icon: Gem },
     { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints },
-    { id: Category.CLEANING, label: 'Cleaning', icon: Brush },
+    { id: Category.CLEANING, label: 'Cleaning', icon: Paintbrush },
     { id: Category.TECHNOLOGY, label: 'Technology', icon: Cpu }
   ];
 
