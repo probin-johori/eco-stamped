@@ -27,7 +27,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Eco Stamped",
-  description: "Discover sustainable brands",
+  description: "Your curated directory of Indias eco-conscious brands, champions, and artisans making tomorrows India possible today",
   openGraph: {
     title: 'Eco Stamped | Brand Directory for everthing sustainable',
     description: 'Your curated directory of Indias eco-conscious brands, champions, and artisans making tomorrows India possible today',
