@@ -105,7 +105,8 @@ export enum Category {
   FARMING = "Farming",
   JEWELRY = "Jewelry",
   FOOTWEAR = "Footwear",
-  CLEANING = "Cleaning"
+  CLEANING = "Cleaning",
+  TECHNOLOGY = "Technology"
 }
 
 export enum Certification {
