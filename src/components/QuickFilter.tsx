@@ -6,7 +6,8 @@ import {
   Shirt, Soup, Home, EyeClosed, Baby, Gift, Heart, Pencil, Dog, Plane,
   Flower2, BookOpen, Car, Scissors, Palette, Sofa, ScrollText, Tractor,
   Gem, Footprints, Sparkles, Monitor, MountainSnow, ChevronRight, ChevronLeft,
-  X, Glasses, Volleyball, SwatchBook, LayoutGrid
+  X, Glasses, Volleyball, SwatchBook, LayoutGrid,
+  Cpu
 } from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
 
@@ -56,7 +57,8 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
     { id: Category.TEXTILES, label: 'Textiles', icon: ScrollText },
     { id: Category.FARMING, label: 'Farming', icon: Tractor },
     { id: Category.JEWELRY, label: 'Jewelry', icon: Gem },
-    { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints }
+    { id: Category.FOOTWEAR, label: 'Footwear', icon: Footprints },
+    { id: Category.TECHNOLOGY, label: 'Technology', icon: Cpu}
   ];
 
   const handleCategoryClick = (categoryId: CategoryItem['id']) => {
