@@ -36,8 +36,13 @@ export function Header({
     const [localSearchQuery, setLocalSearchQuery] = useState<string>('');
     const [brands, setBrands] = useState<SustainableBrand[]>([]);
     const [showMobileSearch, setShowMobileSearch] = useState<boolean>(false);
+    const [isLocalhost, setIsLocalhost] = useState(true);
     const searchRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setIsLocalhost(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    }, []);
 
     useEffect(() => {
         if (showMobileSearch) {
@@ -106,7 +111,7 @@ export function Header({
         setShowDropdown(false);
         setShowMobileSearch(false);
     };
-    // Mobile Search Overlay Component
+
     const MobileSearchOverlay = () => (
         <div className="fixed inset-0 z-[60]">
             <div className="fixed inset-0 min-h-screen bg-white">
@@ -202,7 +207,6 @@ export function Header({
             <div className={`${className} ${!disableShadow && isScrolled ? 'shadow-sm' : ''} ${showAddBrandForm ? 'relative z-[70]' : ''}`}>
                 <div className="px-4 sm:px-10 lg:px-20">
                     <div className="h-16 flex items-center justify-between">
-                        {/* Left section with logo */}
                         <div className="w-[120px] sm:w-[200px]">
                             <Link href="/" className="relative w-auto h-8">
                                 <Image
@@ -216,7 +220,6 @@ export function Header({
                             </Link>
                         </div>
 
-                        {/* Center section with search - hidden on mobile */}
                         <div className="hidden sm:flex flex-1 justify-center max-w-lg mx-auto">
                             <div className="relative w-full" ref={searchRef}>
                                 <Input 
@@ -237,7 +240,6 @@ export function Header({
                                     </button>
                                 )}
 
-                                {/* Desktop dropdown */}
                                 {showDropdown && (
                                     <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-sm border border-border overflow-hidden">
                                         <div className="pt-2 pb-2 px-4">
@@ -294,9 +296,7 @@ export function Header({
                             </div>
                         </div>
 
-                        {/* Right section with navigation */}
                         <div className="flex items-center gap-2 sm:gap-3">
-                            {/* Mobile search button */}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -306,21 +306,24 @@ export function Header({
                                 <Search className="h-5 w-5" />
                             </Button>
 
-                            <Link
-                                href="/certification"
-                                className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
-                            >
-                                Certification
-                            </Link>
+                            {isLocalhost && (
+                                <>
+                                    <Link
+                                        href="/certification"
+                                        className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
+                                    >
+                                        Certification
+                                    </Link>
 
-                            <Link
-                                href="/about"
-                                className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
-                            >
-                                About
-                            </Link>
+                                    <Link
+                                        href="/about"
+                                        className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
+                                    >
+                                        About
+                                    </Link>
+                                </>
+                            )}
 
-                            {/* Desktop Add Brand button */}
                             <Button
                                 variant="default"
                                 className="hidden sm:block rounded-full px-4 py-2 h-auto text-sm font-medium"
@@ -334,7 +337,6 @@ export function Header({
                                 Add Brand
                             </Button>
 
-                            {/* Mobile Add Brand button */}
                             <Button
                                 variant="secondary"
                                 size="icon"
@@ -352,7 +354,6 @@ export function Header({
                     </div>
                 </div>
             </div>
-            {/* Mobile search overlay */}
             {showMobileSearch && <MobileSearchOverlay />}
         </>
     );
