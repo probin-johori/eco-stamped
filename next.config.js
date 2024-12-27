@@ -24,6 +24,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   async redirects() {
+    const isProduction = process.env.NODE_ENV === 'production';
     return [
       {
         source: '/(about|certification)',
@@ -34,9 +35,9 @@ const nextConfig = {
           },
         ],
         permanent: false,
-        destination: '/'
-      }
-    ]
+        destination: '/',
+      },
+    ];
   },
   async headers() {
     return [
@@ -53,7 +54,7 @@ const nextConfig = {
           }
         ]
       }
-    ]
+    ];
   }
 };
 
