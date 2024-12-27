@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    domains: ['v5.airtableusercontent.com', 'v4.airtableusercontent.com', 'v3.airtableusercontent.com', 'dl.airtable.com'],
     remotePatterns: [
       {
         protocol: 'https',
