@@ -4,20 +4,12 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'v5.airtableusercontent.com',
+        hostname: '*.airtableusercontent.com',
       },
       {
         protocol: 'https',
         hostname: 'dl.airtable.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'v4.airtableusercontent.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'v3.airtableusercontent.com',
-      },
+      }
     ],
   },
   eslint: {
