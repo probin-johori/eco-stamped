@@ -43,14 +43,28 @@ export default function Home(): JSX.Element {
   }, [router]);
 
   const filteredBrands = useMemo(() => {
-    if (!activeCategory) return brands;
+    let filtered = [...brands];
     
-    if (activeCategory === 'eco-champion') {
-      return brands.filter(brand => brand.isCuratorsPick);
+    // Apply search filter if query exists
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(brand => 
+        brand.name.toLowerCase().includes(query) ||
+        brand.categories.some(category => category.toLowerCase().includes(query))
+      );
     }
     
-    return brands.filter(brand => brand.categories.includes(activeCategory));
-  }, [brands, activeCategory]);
+    // Apply category filter
+    if (activeCategory) {
+      if (activeCategory === 'eco-champion') {
+        filtered = filtered.filter(brand => brand.isCuratorsPick);
+      } else {
+        filtered = filtered.filter(brand => brand.categories.includes(activeCategory));
+      }
+    }
+    
+    return filtered;
+  }, [brands, activeCategory, searchQuery]);
 
   const visibleBrandsList = useMemo(() => {
     return filteredBrands.slice(0, visibleBrands);
@@ -126,7 +140,7 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     setVisibleBrands(BRANDS_PER_PAGE);
-  }, [activeCategory]);
+  }, [activeCategory, searchQuery]);
 
   const handleFormSubmit = useCallback(async (data: Omit<SustainableBrand, 'id'>) => {
     try {
@@ -190,7 +204,7 @@ export default function Home(): JSX.Element {
 
       <main className="flex-1">
         <div className="px-4 sm:px-20">
-          {!activeCategory && !isLoading && filteredBrands.length > 0 && (
+          {!activeCategory && !searchQuery && !isLoading && filteredBrands.length > 0 && (
             <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
                 Discover Tomorrow&apos;s India
@@ -221,11 +235,12 @@ export default function Home(): JSX.Element {
                   <BrandCardSkeleton key={index} />
                 ))
               ) : (
-                visibleBrandsList.map((brand) => (
+                visibleBrandsList.map((brand, index) => (
                   <BrandCard 
                     key={brand.id} 
                     brand={brand}
                     onClick={() => handleBrandClick(brand)}
+                    isPriority={index < 3}
                   />
                 ))
               )}

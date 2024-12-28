@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['v5.airtableusercontent.com', 'v4.airtableusercontent.com', 'v3.airtableusercontent.com', 'dl.airtable.com'],
+    domains: [
+      'v5.airtableusercontent.com',
+      'v4.airtableusercontent.com',
+      'v3.airtableusercontent.com',
+      'dl.airtable.com',
+      'xntdrrorftkvvgelstgs.supabase.co'
+    ],
     remotePatterns: [
       {
         protocol: 'https',
@@ -10,8 +16,16 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'dl.airtable.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'xntdrrorftkvvgelstgs.supabase.co',
+        pathname: '/storage/v1/object/public/**',
       }
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   eslint: {
     ignoreDuringBuilds: true,

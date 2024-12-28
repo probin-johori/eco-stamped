@@ -1,30 +1,31 @@
 'use client'
 
-import { SustainableBrand } from '@/lib/brands';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Card } from "@/components/ui/card";
-import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Sparkles } from 'lucide-react'
+import { Card } from "@/components/ui/card"
+import { SustainableBrand } from '@/lib/brands'
 
 interface BrandCardProps {
     brand: SustainableBrand;
     onClick?: () => void;
+    isPriority?: boolean;
 }
 
-const slugify = (text: string) => {
+const slugify = (text: string): string => {
     return text
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w-]+/g, '');
 };
 
-export const BrandCard = ({ brand, onClick }: BrandCardProps) => {
+export const BrandCard = ({ brand, onClick, isPriority = false }: BrandCardProps) => {
     const [coverError, setCoverError] = useState(false);
     const [logoError, setLogoError] = useState(false);
     const detailsPath = `/${slugify(brand.name)}`;
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (onClick) {
             e.preventDefault();
             onClick();
@@ -54,8 +55,8 @@ export const BrandCard = ({ brand, onClick }: BrandCardProps) => {
                                     src={brand.cover}
                                     alt={`${brand.name} banner`}
                                     fill
-                                    quality={100}
-                                    priority
+                                    quality={85}
+                                    priority={isPriority}
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover transition-transform duration-300 sm:hover:scale-105"
                                     onError={() => setCoverError(true)}
@@ -104,3 +105,5 @@ export const BrandCard = ({ brand, onClick }: BrandCardProps) => {
         </div>
     );
 };
+
+export default BrandCard;

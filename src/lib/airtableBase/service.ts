@@ -6,7 +6,7 @@ import {
   Category,
   Certification 
 } from '@/lib/brands';
-import type { FieldSet, Attachment } from 'airtable';
+import type { FieldSet } from 'airtable';
 
 const TABLES = {
   BRANDS: AIRTABLE_CONFIG.tables.BRANDS,
@@ -22,18 +22,16 @@ interface RetailerInfo {
 
 // Helper functions for mapping Airtable values to enums
 const mapAirtableToCertification = (value: string): Certification => {
-  // Create a reverse mapping of string values to enum keys
   const certificationMap = Object.entries(Certification).reduce((acc, [enumKey, stringValue]) => {
     acc[stringValue] = enumKey as keyof typeof Certification;
     return acc;
   }, {} as Record<string, keyof typeof Certification>);
   
-  // Get the enum key for this string value
   const enumKey = certificationMap[value];
   
   if (!enumKey) {
     console.warn(`Unknown certification value: ${value}`);
-    return Certification.ORGANIC; // fallback value
+    return Certification.ORGANIC;
   }
   
   return Certification[enumKey];
@@ -71,7 +69,7 @@ export class AirtableService {
       return records.map(record => ({
         id: record.id,
         name: record.fields.Name as Marketplace,
-        logo: (record.fields.Logo as unknown as Attachment[])?.[0]?.url || '',
+        logo: record.fields.Logo as string || '',
         website: record.fields.Website as string
       }));
     } catch (error) {
@@ -121,7 +119,9 @@ export class AirtableService {
         console.log('Processing brand:', {
           name: fields.Name,
           isCuratorsPick: fields.IsCuratorsPick,
-          fieldsAvailable: Object.keys(fields)
+          fieldsAvailable: Object.keys(fields),
+          logo: fields.Logo,
+          cover: fields.Cover
         });
 
         try {
@@ -146,18 +146,17 @@ export class AirtableService {
               )
             : [Category.CLOTHING];
 
+          // Handle images array as direct URLs
           const images = Array.isArray(fields.Images)
-            ? fields.Images.map((img: Attachment, index: number) => ({
-                url: img.url,
+            ? fields.Images.map((url: string, index: number) => ({
+                url,
                 description: fields.ImageDescriptions?.split(';')[index]?.trim() || ''
               }))
             : [];
 
           const founderNames = fields.FoundersNames?.split(';') || [];
           const founderRoles = fields.FounderRoles?.split(';') || [];
-          const founderImages = fields.FounderImages 
-            ? (fields.FounderImages as Attachment[]).map(img => img.url)
-            : [];
+          const founderImages = fields.FounderImages || [];
 
           const founders = founderNames.map((name: string, index: number) => ({
             name: name.trim(),
@@ -207,8 +206,8 @@ export class AirtableService {
           const brand: SustainableBrand = {
             id: record.id,
             name: fields.Name || '',
-            logo: (fields.Logo as unknown as Attachment[])?.[0]?.url || '',
-            cover: (fields.Cover as unknown as Attachment[])?.[0]?.url || '',
+            logo: fields.Logo || '',
+            cover: fields.Cover || '',
             isCuratorsPick: fields.IsCuratorsPick === true || fields.IsCuratorsPick === 'true' || fields.IsCuratorsPick === '✓',
             categories,
             content: {
@@ -271,8 +270,8 @@ export class AirtableService {
 
       const airtableData = {
         Name: data.name,
-        Logo: data.logo ? [{ url: data.logo }] as unknown as Attachment[] : [],
-        Cover: data.cover ? [{ url: data.cover }] as unknown as Attachment[] : [],
+        Logo: data.logo || '',
+        Cover: data.cover || '',
         IsCuratorsPick: data.isCuratorsPick || false,
         Categories: Array.from(new Set(data.categories)).map(cat => cat.toString()),
         About: data.content.about,
@@ -283,13 +282,13 @@ export class AirtableService {
           .join(';'),
         URL: data.url,
         BusinessStartDate: data.businessStartDate,
-        Images: data.images.map(img => ({ url: img.url })) as unknown as Attachment[],
+        Images: data.images.map(img => img.url),
         ImageDescriptions: data.images.map(img => img.description).join(';'),
         FoundersNames: data.founder.map(f => f.name).join(';'),
         FounderRoles: data.founder.map(f => f.role).join(';'),
         FounderImages: data.founder
           .filter(f => f.imageUrl && f.imageUrl !== '/placeholder-founder.jpg')
-          .map(f => ({ url: f.imageUrl })) as unknown as Attachment[],
+          .map(f => f.imageUrl),
         WorkforceDescription: data.workforce?.description,
         BrandVideo: data.brandVideo,
         ProductRange: data.productRange.join(';'),
@@ -324,8 +323,8 @@ export class AirtableService {
       const airtableData: Partial<FieldSet> = {};
 
       if (data.name) airtableData.Name = data.name;
-      if (data.logo) airtableData.Logo = [{ url: data.logo }] as unknown as Attachment[];
-      if (data.cover) airtableData.Cover = [{ url: data.cover }] as unknown as Attachment[];
+      if (data.logo) airtableData.Logo = data.logo;
+      if (data.cover) airtableData.Cover = data.cover;
       if (data.isCuratorsPick !== undefined) airtableData.IsCuratorsPick = data.isCuratorsPick;
       if (data.categories) {
         airtableData.Categories = Array.from(new Set(data.categories)).map(cat => cat.toString());
@@ -341,7 +340,7 @@ export class AirtableService {
       if (data.url) airtableData.URL = data.url;
       if (data.businessStartDate) airtableData.BusinessStartDate = data.businessStartDate;
       if (data.images) {
-        airtableData.Images = data.images.map(img => ({ url: img.url })) as unknown as Attachment[];
+        airtableData.Images = data.images.map(img => img.url);
         airtableData.ImageDescriptions = data.images.map(img => img.description).join(';');
       }
       if (data.founder) {
@@ -349,7 +348,7 @@ export class AirtableService {
         airtableData.FounderRoles = data.founder.map(f => f.role).join(';');
         airtableData.FounderImages = data.founder
           .filter(f => f.imageUrl && f.imageUrl !== '/placeholder-founder.jpg')
-          .map(f => ({ url: f.imageUrl })) as unknown as Attachment[];
+          .map(f => f.imageUrl);
       }
       if (data.workforce?.description) airtableData.WorkforceDescription = data.workforce.description;
       if (data.brandVideo) airtableData.BrandVideo = data.brandVideo;
