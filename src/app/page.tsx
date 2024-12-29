@@ -149,7 +149,6 @@ export default function Home(): JSX.Element {
 
   const handleFormSubmit = useCallback(async (data: Omit<SustainableBrand, 'id'>) => {
     try {
-      console.log('Submitting form data:', data);
       await queryClient.invalidateQueries({ queryKey: ['brands'] });
       setShowAddBrandForm(false);
     } catch (err) {
@@ -181,12 +180,12 @@ export default function Home(): JSX.Element {
       </Head>
       <div className="flex flex-col min-h-screen bg-background">
         <div 
-          className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 sm:transform-none ${
+          className={`fixed inset-x-0 top-0 bg-background transition-transform duration-300 sm:transform-none ${
             isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
           }`} 
           style={{ zIndex: 49 }}
         >
-          <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
+          <div className="transition-shadow duration-200">
             <div className="relative" style={{ zIndex: 51 }}>
               <Header 
                 searchQuery={searchQuery}
@@ -238,7 +237,7 @@ export default function Home(): JSX.Element {
             )}
 
             {(isLoading || filteredBrands.length > 0) && (
-              <div ref={gridStartRef}>
+              <div ref={gridStartRef} className="h-full pb-20">
                 {isLoading ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                     {Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
@@ -246,11 +245,13 @@ export default function Home(): JSX.Element {
                     ))}
                   </div>
                 ) : (
-                  <BrandGrid 
-                    brands={filteredBrands}
-                    onBrandClick={handleBrandClick}
-                    visibleCount={visibleBrands}
-                  />
+                  <div className="h-full">
+                    <BrandGrid 
+                      brands={filteredBrands}
+                      onBrandClick={handleBrandClick}
+                      visibleCount={visibleBrands}
+                    />
+                  </div>
                 )}
               </div>
             )}
