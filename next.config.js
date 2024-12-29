@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true,
     domains: [
       'v5.airtableusercontent.com',
       'v4.airtableusercontent.com',
@@ -24,11 +23,11 @@ const nextConfig = {
         pathname: '/storage/v1/object/public/**',
       }
     ],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/webp'],
+    minimumCacheTTL: 31536000, // Cache for one year
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: true,  // Add this line
-    minimumCacheTTL: 60,  // Add this line
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -52,6 +51,24 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Global headers for all routes
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          }
+        ]
+      },
+      {
         source: '/(about|certification)',
         headers: [
           {
@@ -65,7 +82,7 @@ const nextConfig = {
         ]
       },
       {
-        // Add this new headers configuration for images
+        // Optimize image caching
         source: '/api/_next/image/:path*',
         headers: [
           {
@@ -79,7 +96,11 @@ const nextConfig = {
         ]
       }
     ];
-  }
+  },
+  // Add performance optimization
+  poweredByHeader: false,
+  compress: true,
+  productionBrowserSourceMaps: false,
 };
 
 module.exports = nextConfig;
