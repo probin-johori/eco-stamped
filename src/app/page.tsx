@@ -11,6 +11,7 @@ import { AddBrandForm } from '@/components/AddBrandForm';
 import { useRouter } from 'next/navigation';
 import { useBrands } from '@/lib/hooks/useBrands';
 import { useQueryClient } from '@tanstack/react-query';
+import Head from 'next/head';
 
 const BRANDS_PER_PAGE = 16;
 const HEADER_HEIGHT = 132;
@@ -88,7 +89,6 @@ export default function Home(): JSX.Element {
     return filtered;
   }, [brands, activeCategory, searchQuery]);
 
-  // Optimized scroll handler with debouncing
   const handleScroll = useCallback(() => {
     if (scrollTimeout.current) {
       clearTimeout(scrollTimeout.current);
@@ -119,7 +119,6 @@ export default function Home(): JSX.Element {
     };
   }, [handleScroll]);
 
-  // Optimized intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -160,102 +159,116 @@ export default function Home(): JSX.Element {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <p className="text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load brands'}</p>
-      </div>
+      <>
+        <Head>
+          <meta name="robots" content="index,follow" />
+          <title>Eco Stamped - Sustainable Brands Directory</title>
+          <meta name="description" content="Discover sustainable and eco-friendly brands in India" />
+        </Head>
+        <div className="min-h-screen bg-background p-4">
+          <p className="text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load brands'}</p>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div 
-        className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 sm:transform-none ${
-          isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
-        }`} 
-        style={{ zIndex: 49 }}
-      >
-        <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
-          <div className="relative" style={{ zIndex: 51 }}>
-            <Header 
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              disableShadow
-              className="w-full"
-              showAddBrandForm={showAddBrandForm}
-              onShowAddBrandForm={setShowAddBrandForm}
-            />
-          </div>
-          
-          <div className="relative" style={{ zIndex: 50 }}>
-            <QuickFilter 
-              activeCategory={activeCategory}
-              onCategoryChange={(category) => {
-                setIsSelectingCategories(true);
-                setActiveCategory(category);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                setTimeout(() => setIsSelectingCategories(false), 1000);
-              }}
-            />
+    <>
+      <Head>
+        <meta name="robots" content="index,follow" />
+        <title>Eco Stamped - Sustainable Brands Directory</title>
+        <meta name="description" content="Discover sustainable and eco-friendly brands in India" />
+      </Head>
+      <div className="flex flex-col min-h-screen bg-background">
+        <div 
+          className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 sm:transform-none ${
+            isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
+          }`} 
+          style={{ zIndex: 49 }}
+        >
+          <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
+            <div className="relative" style={{ zIndex: 51 }}>
+              <Header 
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                disableShadow
+                className="w-full"
+                showAddBrandForm={showAddBrandForm}
+                onShowAddBrandForm={setShowAddBrandForm}
+              />
+            </div>
+            
+            <div className="relative" style={{ zIndex: 50 }}>
+              <QuickFilter 
+                activeCategory={activeCategory}
+                onCategoryChange={(category) => {
+                  setIsSelectingCategories(true);
+                  setActiveCategory(category);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  setTimeout(() => setIsSelectingCategories(false), 1000);
+                }}
+              />
+            </div>
           </div>
         </div>
+
+        <div className="h-[132px] sm:h-[152px]" />
+
+        <main className="flex-1">
+          <div className="px-4 sm:px-20">
+            {!activeCategory && !searchQuery && !isLoading && filteredBrands.length > 0 && (
+              <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
+                <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
+                  Discover Tomorrow&apos;s India
+                  <br />
+                  with Eco-Champions
+                </h1>
+              </div>
+            )}
+
+            {!isLoading && filteredBrands.length === 0 && (
+              <div className="text-center py-16">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
+                  We&apos;re Growing Our Directory
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+                  It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection more comprehensive.
+                </p>
+              </div>
+            )}
+
+            {(isLoading || filteredBrands.length > 0) && (
+              <div ref={gridStartRef}>
+                {isLoading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
+                      <BrandCardSkeleton key={index} />
+                    ))}
+                  </div>
+                ) : (
+                  <BrandGrid 
+                    brands={filteredBrands}
+                    onBrandClick={handleBrandClick}
+                    visibleCount={visibleBrands}
+                  />
+                )}
+              </div>
+            )}
+
+            {!isLoading && visibleBrands < filteredBrands.length && (
+              <div ref={loadMoreRef} className="h-20" aria-hidden="true" />
+            )}
+          </div>
+        </main>
+
+        <Footer onShowAddBrandForm={setShowAddBrandForm} />
+
+        <AddBrandForm 
+          isOpen={showAddBrandForm}
+          onClose={() => setShowAddBrandForm(false)}
+          onSubmit={handleFormSubmit}
+        />
       </div>
-
-      <div className="h-[132px] sm:h-[152px]" />
-
-      <main className="flex-1">
-        <div className="px-4 sm:px-20">
-          {!activeCategory && !searchQuery && !isLoading && filteredBrands.length > 0 && (
-            <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
-              <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
-                Discover Tomorrow&apos;s India
-                <br />
-                with Eco-Champions
-              </h1>
-            </div>
-          )}
-
-          {!isLoading && filteredBrands.length === 0 && (
-            <div className="text-center py-16">
-              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3">
-                We&apos;re Growing Our Directory
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection more comprehensive.
-              </p>
-            </div>
-          )}
-
-          {(isLoading || filteredBrands.length > 0) && (
-            <div ref={gridStartRef}>
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
-                    <BrandCardSkeleton key={index} />
-                  ))}
-                </div>
-              ) : (
-                <BrandGrid 
-                  brands={filteredBrands}
-                  onBrandClick={handleBrandClick}
-                  visibleCount={visibleBrands}
-                />
-              )}
-            </div>
-          )}
-
-          {!isLoading && visibleBrands < filteredBrands.length && (
-            <div ref={loadMoreRef} className="h-20" aria-hidden="true" />
-          )}
-        </div>
-      </main>
-
-      <Footer onShowAddBrandForm={setShowAddBrandForm} />
-
-      <AddBrandForm 
-        isOpen={showAddBrandForm}
-        onClose={() => setShowAddBrandForm(false)}
-        onSubmit={handleFormSubmit}
-      />
-    </div>
+    </>
   );
 }
