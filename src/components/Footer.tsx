@@ -14,13 +14,11 @@ export const Footer = ({ onShowAddBrandForm }: { onShowAddBrandForm: (show: bool
             {/* Signature */}
             <div className="w-full flex justify-center">
               <Image
-                src="https://xntdrrorftkvvgelstgs.supabase.co/storage/v1/object/public/brand-assets/covers/ecostampedfooter.svg?t=2024-12-28T17%3A02%3A21.373Z"
+                src="https://xntdrrorftkvvgelstgs.supabase.co/storage/v1/object/public/brand-assets/covers/ecostampedlogo.svg?t=2024-12-29T00%3A56%3A43.309Z"
                 alt="Eco Stamped Signature"
                 width={240}
                 height={80}
                 className="object-contain"
-                priority
-                unoptimized
               />
             </div>
             {/* Description */}
