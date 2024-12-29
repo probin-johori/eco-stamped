@@ -77,7 +77,7 @@ export const BrandCard = ({
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-                                <span className="text-neutral-400">{brand.name}</span>
+                                <span className="text-neutral-700">{brand.name}</span>
                             </div>
                         )}
                     </div>
@@ -100,7 +100,7 @@ export const BrandCard = ({
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
-                                            <span className="text-xs text-neutral-400">
+                                            <span className="text-xs text-neutral-700">
                                                 {brand.name.charAt(0)}
                                             </span>
                                         </div>

@@ -40,9 +40,9 @@ export const Footer = ({ onShowAddBrandForm }: { onShowAddBrandForm: (show: bool
 
                         {/* CTA Section */}
                         <div className="text-center">
-                            <h3 className="text-xl font-medium text-foreground mb-4">
+                            <h2 className="text-xl font-medium text-foreground mb-4">
                                 Discovered a mindful brand? Help us showcase them
-                            </h3>
+                            </h2>
                             <Button
                                 className="rounded-full px-8"
                                 onClick={() => onShowAddBrandForm(true)}

@@ -113,16 +113,16 @@ export function Header({
     };
 
     const MobileSearchOverlay = () => (
-        <div className="fixed inset-0 z-[60]">
+        <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Search brands">
             <div className="fixed inset-0 min-h-screen bg-white">
                 <div className="h-full">
                     <div className="px-4 pt-20 pb-2 sticky top-0 bg-white">
                         <button
                             onClick={handleCloseSearch}
                             className="absolute right-4 top-4 w-10 h-10 flex items-center justify-center rounded-full opacity-70 hover:opacity-100 transition-opacity"
+                            aria-label="Close search"
                         >
                             <X className="h-5 w-5" />
-                            <span className="sr-only">Close</span>
                         </button>
                         
                         <div className="relative">
@@ -132,13 +132,15 @@ export function Header({
                                 value={localSearchQuery}
                                 onChange={(e) => setLocalSearchQuery(e.target.value)}
                                 autoFocus
+                                aria-label="Search brands"
                             />
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
                             {localSearchQuery && (
                                 <button
                                     type="button"
                                     onClick={handleClearSearch}
                                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                    aria-label="Clear search"
                                 >
                                     Clear
                                 </button>
@@ -146,7 +148,7 @@ export function Header({
                         </div>
                     </div>
     
-                    <div className="px-4 overflow-y-auto">
+                    <div className="px-4 overflow-y-auto" role="listbox">
                         {searchResults.length > 0 ? (
                             <>
                                 <div className="pt-4 pb-2">
@@ -165,12 +167,14 @@ export function Header({
                                                 setLocalSearchQuery('');
                                                 setShowMobileSearch(false);
                                             }}
+                                            role="option"
+                                            aria-label={`View ${brand.name}`}
                                         >
                                             <div className="w-12 h-12 relative rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
                                                 {brand.logo ? (
                                                     <Image
                                                         src={brand.logo}
-                                                        alt={brand.name}
+                                                        alt={`${brand.name} logo`}
                                                         fill
                                                         className="object-contain"
                                                     />
@@ -204,11 +208,11 @@ export function Header({
 
     return (
         <>
-            <div className={`${className} ${!disableShadow && isScrolled ? 'shadow-sm' : ''} ${showAddBrandForm ? 'relative z-[70]' : ''}`}>
+            <header className={`${className} ${!disableShadow && isScrolled ? 'shadow-sm' : ''} ${showAddBrandForm ? 'relative z-[70]' : ''}`}>
                 <div className="px-4 sm:px-10 lg:px-20">
                     <div className="h-16 flex items-center justify-between">
                         <div className="w-[120px] sm:w-[200px]">
-                            <Link href="/" className="relative w-auto h-8">
+                            <Link href="/" className="relative w-auto h-8" aria-label="Go to homepage">
                                 <Image
                                     src="https://xntdrrorftkvvgelstgs.supabase.co/storage/v1/object/public/brand-assets/covers/ecostampedlogo.svg?t=2024-12-29T00%3A56%3A43.309Z"
                                     alt="Sustainable Brands Logo"
@@ -228,20 +232,26 @@ export function Header({
                                     value={localSearchQuery}
                                     onChange={(e) => setLocalSearchQuery(e.target.value)}
                                     onFocus={() => setShowDropdown(true)}
+                                    aria-label="Search brands"
                                 />
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
                                 {localSearchQuery && (
                                     <button
                                         type="button"
                                         onClick={handleClearSearch}
                                         className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-muted"
+                                        aria-label="Clear search"
                                     >
                                         <X className="h-5 w-5 text-muted-foreground" />
                                     </button>
                                 )}
 
                                 {showDropdown && (
-                                    <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-sm border border-border overflow-hidden">
+                                    <div 
+                                        ref={dropdownRef} 
+                                        className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-sm border border-border overflow-hidden"
+                                        role="listbox"
+                                    >
                                         <div className="pt-2 pb-2 px-4">
                                             <span className="text-[12px] text-muted-foreground block mb-0">
                                                 {localSearchQuery ? 'Search results' : 'Top Sustainable Brands'}
@@ -261,12 +271,14 @@ export function Header({
                                                         }}
                                                         onMouseEnter={() => setShowHover(true)}
                                                         onMouseLeave={() => setShowHover(false)}
+                                                        role="option"
+                                                        aria-label={`View ${brand.name}`}
                                                     >
                                                         <div className="w-8 h-8 relative rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
                                                             {brand.logo ? (
                                                                 <Image
                                                                     src={brand.logo}
-                                                                    alt={brand.name}
+                                                                    alt={`${brand.name} logo`}
                                                                     fill
                                                                     className="object-contain"
                                                                 />
@@ -302,6 +314,7 @@ export function Header({
                                 size="icon"
                                 className="sm:hidden rounded-full"
                                 onClick={() => setShowMobileSearch(true)}
+                                aria-label="Search brands"
                             >
                                 <Search className="h-5 w-5" />
                             </Button>
@@ -311,6 +324,7 @@ export function Header({
                                     <Link
                                         href="/certification"
                                         className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
+                                        aria-label="View certification information"
                                     >
                                         Certification
                                     </Link>
@@ -318,6 +332,7 @@ export function Header({
                                     <Link
                                         href="/about"
                                         className="hidden sm:block rounded-full px-3 py-2 hover:bg-muted transition-colors text-sm font-medium text-slate-800"
+                                        aria-label="About Eco Stamped"
                                     >
                                         About
                                     </Link>
@@ -333,6 +348,7 @@ export function Header({
                                     setLocalSearchQuery('');
                                     onShowAddBrandForm(true);
                                 }}
+                                aria-label="Add a sustainable brand"
                             >
                                 Add Brand
                             </Button>
@@ -347,13 +363,14 @@ export function Header({
                                     setLocalSearchQuery('');
                                     onShowAddBrandForm(true);
                                 }}
+                                aria-label="Add a sustainable brand"
                             >
                                 <Plus className="h-5 w-5" />
                             </Button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </header>
             {showMobileSearch && <MobileSearchOverlay />}
         </>
     );
