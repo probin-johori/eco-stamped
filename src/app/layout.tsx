@@ -28,6 +28,17 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Eco Stamped",
   description: "Your curated directory of Indias eco-conscious brands, champions, and artisans making tomorrows India possible today",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     title: 'Eco Stamped | Brand Directory for everthing sustainable',
     description: 'Your curated directory of Indias eco-conscious brands, champions, and artisans making tomorrows India possible today',
