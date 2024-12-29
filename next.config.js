@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    unoptimized: true,
     domains: [
       'v5.airtableusercontent.com',
       'v4.airtableusercontent.com',
@@ -26,6 +27,8 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: true,  // Add this line
+    minimumCacheTTL: 60,  // Add this line
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -58,6 +61,20 @@ const nextConfig = {
           {
             key: 'Access-Control-Allow-Origin',
             value: 'localhost:3000'
+          }
+        ]
+      },
+      {
+        // Add this new headers configuration for images
+        source: '/api/_next/image/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
           }
         ]
       }
