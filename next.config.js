@@ -27,8 +27,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: true,  // Add this line
-    minimumCacheTTL: 60,  // Add this line
+    minimumCacheTTL: 60,
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -52,6 +51,20 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Apply to all routes
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'index,follow'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, must-revalidate'
+          }
+        ],
+      },
+      {
         source: '/(about|certification)',
         headers: [
           {
@@ -65,7 +78,6 @@ const nextConfig = {
         ]
       },
       {
-        // Add this new headers configuration for images
         source: '/api/_next/image/:path*',
         headers: [
           {
@@ -79,7 +91,10 @@ const nextConfig = {
         ]
       }
     ];
-  }
+  },
+  poweredByHeader: false,  // Remove X-Powered-By header for security
+  compress: true,         // Enable compression
+  generateEtags: true,    // Enable ETags for caching
 };
 
 module.exports = nextConfig;
