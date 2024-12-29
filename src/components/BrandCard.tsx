@@ -11,6 +11,7 @@ interface BrandCardProps {
     brand: SustainableBrand;
     onClick?: () => void;
     isPriority?: boolean;
+    index?: number; // Add index prop to help with priority loading
 }
 
 const slugify = (text: string): string => {
@@ -20,10 +21,20 @@ const slugify = (text: string): string => {
         .replace(/[^\w-]+/g, '');
 };
 
-export const BrandCard = ({ brand, onClick, isPriority = false }: BrandCardProps) => {
+export const BrandCard = ({ 
+    brand, 
+    onClick, 
+    isPriority = false,
+    index = 0 
+}: BrandCardProps) => {
     const [coverError, setCoverError] = useState(false);
     const [logoError, setLogoError] = useState(false);
     const detailsPath = `/${slugify(brand.name)}`;
+
+    // Determine loading strategy based on index
+    const loadingStrategy = index < 4 ? "eager" : "lazy";
+    // Set priority only for first fold images
+    const shouldPrioritize = isPriority || index < 2;
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (onClick) {
@@ -55,11 +66,14 @@ export const BrandCard = ({ brand, onClick, isPriority = false }: BrandCardProps
                                     src={brand.cover}
                                     alt={`${brand.name} banner`}
                                     fill
-                                    quality={85}
-                                    priority={isPriority}
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    loading={loadingStrategy}
+                                    quality={75} // Reduced quality for better performance
+                                    priority={shouldPrioritize}
+                                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                     className="object-cover transition-transform duration-300 sm:hover:scale-105"
                                     onError={() => setCoverError(true)}
+                                    placeholder="blur"
+                                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRseHyAiIB0gICAuICYmJy4mICYmKDEsJicxKCg0LSY/OTExP0dHR2NfYl9jOTj/2wBDARUXFx4YHh8fHh4oJSU6Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-neutral-100">
@@ -77,6 +91,7 @@ export const BrandCard = ({ brand, onClick, isPriority = false }: BrandCardProps
                                                 alt={`${brand.name} logo`}
                                                 width={40}
                                                 height={40}
+                                                loading={loadingStrategy}
                                                 className="object-contain"
                                                 onError={() => setLogoError(true)}
                                             />
@@ -89,10 +104,10 @@ export const BrandCard = ({ brand, onClick, isPriority = false }: BrandCardProps
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0 mr-4">
-                                        <div className="font-semibold text-sm text-gray-900 truncate" style={{ lineHeight: '20px' }}>
+                                        <div className="font-semibold text-sm text-gray-900 truncate">
                                             {brand.name}
                                         </div>
-                                        <div className="text-sm text-gray-500 truncate" style={{ lineHeight: '18px' }}>
+                                        <div className="text-sm text-gray-500 truncate">
                                             {brand.categories.join(', ')}
                                         </div>
                                     </div>

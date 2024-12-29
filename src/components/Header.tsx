@@ -210,7 +210,7 @@ export function Header({
                         <div className="w-[120px] sm:w-[200px]">
                             <Link href="/" className="relative w-auto h-8">
                                 <Image
-                                    src="/logos/sustainable-brands.svg"
+                                    src="https://xntdrrorftkvvgelstgs.supabase.co/storage/v1/object/public/brand-assets/covers/ecostampedlogo.svg?t=2024-12-29T00%3A56%3A43.309Z"
                                     alt="Sustainable Brands Logo"
                                     width={120}
                                     height={32}

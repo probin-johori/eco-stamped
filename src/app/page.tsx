@@ -16,6 +16,29 @@ const BRANDS_PER_PAGE = 16;
 const HEADER_HEIGHT = 132;
 const SCROLL_THRESHOLD = 400;
 
+// Separate component for the brand grid to optimize re-renders
+const BrandGrid = ({ brands, onBrandClick, visibleCount }: { 
+  brands: SustainableBrand[], 
+  onBrandClick: (brand: SustainableBrand) => void,
+  visibleCount: number 
+}) => {
+  const visibleBrands = brands.slice(0, visibleCount);
+  
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      {visibleBrands.map((brand, index) => (
+        <BrandCard 
+          key={brand.id} 
+          brand={brand}
+          onClick={() => onBrandClick(brand)}
+          isPriority={index < 3}
+          index={index}
+        />
+      ))}
+    </div>
+  );
+};
+
 const slugify = (text: string): string => {
   return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
 };
@@ -35,6 +58,7 @@ export default function Home(): JSX.Element {
   
   const gridStartRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const scrollTimeout = useRef<NodeJS.Timeout>();
 
   const { data: brands = [], isLoading, error } = useBrands();
 
@@ -43,9 +67,10 @@ export default function Home(): JSX.Element {
   }, [router]);
 
   const filteredBrands = useMemo(() => {
-    let filtered = [...brands];
+    if (!brands.length) return [];
     
-    // Apply search filter if query exists
+    let filtered = brands;
+    
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(brand => 
@@ -54,81 +79,62 @@ export default function Home(): JSX.Element {
       );
     }
     
-    // Apply category filter
     if (activeCategory) {
-      if (activeCategory === 'eco-champion') {
-        filtered = filtered.filter(brand => brand.isCuratorsPick);
-      } else {
-        filtered = filtered.filter(brand => brand.categories.includes(activeCategory));
-      }
+      filtered = activeCategory === 'eco-champion' 
+        ? filtered.filter(brand => brand.isCuratorsPick)
+        : filtered.filter(brand => brand.categories.includes(activeCategory));
     }
     
     return filtered;
   }, [brands, activeCategory, searchQuery]);
 
-  const visibleBrandsList = useMemo(() => {
-    return filteredBrands.slice(0, visibleBrands);
-  }, [filteredBrands, visibleBrands]);
-
+  // Optimized scroll handler with debouncing
   const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    
-    // Show shadow when scrolled
-    setShowShadow(currentScrollY > 0);
-    
-    // Only update if scroll position has changed and not selecting categories
-    if (currentScrollY !== lastScrollY && !isSelectingCategories) {
-      if (currentScrollY < SCROLL_THRESHOLD) {
-        // Always show header before threshold
-        setIsHeaderHidden(false);
-      } else if (currentScrollY > lastScrollY) {
-        // Scrolling down & past threshold - hide header
-        setIsHeaderHidden(true);
-      } else {
-        // Scrolling up - show header
-        setIsHeaderHidden(false);
-      }
-      setLastScrollY(currentScrollY);
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current);
     }
+
+    scrollTimeout.current = setTimeout(() => {
+      const currentScrollY = window.scrollY;
+      setShowShadow(currentScrollY > 0);
+      
+      if (currentScrollY !== lastScrollY && !isSelectingCategories) {
+        if (currentScrollY < SCROLL_THRESHOLD) {
+          setIsHeaderHidden(false);
+        } else if (currentScrollY > lastScrollY) {
+          setIsHeaderHidden(true);
+        } else {
+          setIsHeaderHidden(false);
+        }
+        setLastScrollY(currentScrollY);
+      }
+    }, 10);
   }, [lastScrollY, isSelectingCategories]);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const debouncedScroll = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleScroll, 10);
-    };
-
-    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      window.removeEventListener('scroll', debouncedScroll);
-      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     };
   }, [handleScroll]);
 
-  const loadMoreBrands = useCallback(() => {
-    if (isLoadingMore) return;
-    
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setVisibleBrands(prev => {
-        const next = prev + BRANDS_PER_PAGE;
-        return Math.min(next, filteredBrands.length);
-      });
-      setIsLoadingMore(false);
-    }, 500);
-  }, [isLoadingMore, filteredBrands]);
-
+  // Optimized intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting) {
-          loadMoreBrands();
+      ([entry]) => {
+        if (entry.isIntersecting && !isLoadingMore && visibleBrands < filteredBrands.length) {
+          setIsLoadingMore(true);
+          requestAnimationFrame(() => {
+            setVisibleBrands(prev => Math.min(prev + BRANDS_PER_PAGE, filteredBrands.length));
+            setIsLoadingMore(false);
+          });
         }
       },
-      { threshold: 0.1 }
+      { 
+        rootMargin: '200px',
+        threshold: 0.1 
+      }
     );
 
     if (loadMoreRef.current) {
@@ -136,7 +142,7 @@ export default function Home(): JSX.Element {
     }
 
     return () => observer.disconnect();
-  }, [loadMoreBrands]);
+  }, [isLoadingMore, filteredBrands.length, visibleBrands]);
 
   useEffect(() => {
     setVisibleBrands(BRANDS_PER_PAGE);
@@ -162,7 +168,6 @@ export default function Home(): JSX.Element {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header Group */}
       <div 
         className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 sm:transform-none ${
           isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
@@ -170,7 +175,6 @@ export default function Home(): JSX.Element {
         style={{ zIndex: 49 }}
       >
         <div className={`transition-shadow duration-200 ${showShadow ? 'shadow-sm' : ''}`}>
-          {/* Header with highest z-index */}
           <div className="relative" style={{ zIndex: 51 }}>
             <Header 
               searchQuery={searchQuery}
@@ -182,16 +186,13 @@ export default function Home(): JSX.Element {
             />
           </div>
           
-          {/* QuickFilter with intermediate z-index */}
           <div className="relative" style={{ zIndex: 50 }}>
             <QuickFilter 
               activeCategory={activeCategory}
               onCategoryChange={(category) => {
                 setIsSelectingCategories(true);
                 setActiveCategory(category);
-                // Scroll to top smoothly
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                // Reset selecting state after a short delay
                 setTimeout(() => setIsSelectingCategories(false), 1000);
               }}
             />
@@ -199,7 +200,6 @@ export default function Home(): JSX.Element {
         </div>
       </div>
 
-      {/* Spacer for fixed header */}
       <div className="h-[132px] sm:h-[152px]" />
 
       <main className="flex-1">
@@ -220,44 +220,31 @@ export default function Home(): JSX.Element {
                 We&apos;re Growing Our Directory
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-                It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection of eco-friendly companies more comprehensive. If you know of an amazing sustainable brand that should be featured, please share it with us. We&apos;d appreciate your help growing this community resource.
+                It seems we don't have any matching brands in our directory currently. We're continuously working to make our collection more comprehensive.
               </p>
             </div>
           )}
 
           {(isLoading || filteredBrands.length > 0) && (
-            <div 
-              ref={gridStartRef} 
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
-            >
+            <div ref={gridStartRef}>
               {isLoading ? (
-                Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
-                  <BrandCardSkeleton key={index} />
-                ))
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
+                    <BrandCardSkeleton key={index} />
+                  ))}
+                </div>
               ) : (
-                visibleBrandsList.map((brand, index) => (
-                  <BrandCard 
-                    key={brand.id} 
-                    brand={brand}
-                    onClick={() => handleBrandClick(brand)}
-                    isPriority={index < 3}
-                  />
-                ))
+                <BrandGrid 
+                  brands={filteredBrands}
+                  onBrandClick={handleBrandClick}
+                  visibleCount={visibleBrands}
+                />
               )}
             </div>
           )}
 
           {!isLoading && visibleBrands < filteredBrands.length && (
-            <div 
-              ref={loadMoreRef}
-              className="text-center py-8"
-            >
-              {isLoadingMore ? (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-              ) : (
-                <p className="text-muted-foreground">Loading more brands...</p>
-              )}
-            </div>
+            <div ref={loadMoreRef} className="h-20" aria-hidden="true" />
           )}
         </div>
       </main>
@@ -269,16 +256,6 @@ export default function Home(): JSX.Element {
         onClose={() => setShowAddBrandForm(false)}
         onSubmit={handleFormSubmit}
       />
-
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-0 left-0 bg-background/5 text-foreground p-2 text-xs border-t border-border">
-          <div>Active Category: {activeCategory || 'All'}</div>
-          <div>Search Query: {searchQuery || 'None'}</div>
-          <div>Total Brands: {brands.length}</div>
-          <div>Visible Brands: {visibleBrandsList.length}</div>
-          <div>Filtered Total: {filteredBrands.length}</div>
-        </div>
-      )}
     </div>
   );
 }
