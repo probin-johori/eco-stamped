@@ -43,7 +43,7 @@ export const BrandCard = ({
     };
 
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-full" style={{ contain: 'content' }}>
             <Link
                 href={detailsPath}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-xl block h-full"
@@ -51,7 +51,7 @@ export const BrandCard = ({
             >
                 <Card className="relative rounded-3xl border-0 overflow-hidden h-full">
                     {brand.isCuratorsPick && (
-                        <div className="absolute top-3 left-3 z-10">
+                        <div className="absolute top-3 left-3 z-10" style={{ contentVisibility: 'auto' }}>
                             <div className="bg-white px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-1">
                                 <Sparkles className="w-3.5 h-3.5 text-foreground" />
                                 <span className="text-foreground">Eco Champion</span>
@@ -60,7 +60,7 @@ export const BrandCard = ({
                     )}
                     
                     {/* Main image container with fixed aspect ratio */}
-                    <div className="relative aspect-square w-full bg-neutral-50">
+                    <div className="relative aspect-square w-full bg-neutral-50" style={{ contain: 'layout' }}>
                         {brand.cover && !coverError ? (
                             <Image
                                 src={brand.cover}
@@ -83,7 +83,7 @@ export const BrandCard = ({
                     </div>
 
                     {/* Brand info container with fixed positioning */}
-                    <div className="absolute left-3 right-3 bottom-3">
+                    <div className="absolute left-3 right-3 bottom-3" style={{ contain: 'content' }}>
                         <div className="bg-white rounded-full w-full">
                             <div className="flex items-center p-2 gap-2">
                                 {/* Logo container with fixed dimensions */}

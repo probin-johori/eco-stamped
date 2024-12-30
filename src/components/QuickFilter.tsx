@@ -7,8 +7,7 @@ import {
   Volleyball, Gift, Heart, Pencil, Dog, Plane, Flower2, BookOpen,
   Car, Scissors, Palette, Sofa, SwatchBook, ScrollText, Tractor,
   Gem, Footprints, Sparkles, ChevronRight, ChevronLeft, X, LayoutGrid,
-  Brush, Cpu,
-  Paintbrush
+  Brush, Cpu, Paintbrush
 } from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
 
@@ -29,9 +28,8 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [hasScrollShadow, setHasScrollShadow] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 640 : true);
 
-  // Updated categories array to match the enum exactly
   const categories: CategoryItem[] = [
     { id: null, label: 'All', icon: LayoutGrid },
     { id: 'eco-champion', label: 'Eco Champion', icon: Sparkles },
@@ -72,15 +70,22 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
 
   const checkFilterScroll = () => {
     if (scrollContainerRef.current && !isMobile) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 1);
+      requestAnimationFrame(() => {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current!;
+        setShowLeftArrow(scrollLeft > 0);
+        setShowRightArrow(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 1);
+      });
     }
   };
 
   const checkPageScroll = () => {
     if (typeof window !== 'undefined') {
-      setHasScrollShadow(window.scrollY > 0);
+      requestAnimationFrame(() => {
+        const shouldShowShadow = window.scrollY > 0;
+        if (shouldShowShadow !== hasScrollShadow) {
+          setHasScrollShadow(shouldShowShadow);
+        }
+      });
     }
   };
 
@@ -96,31 +101,35 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 640); // sm breakpoint
+      const mobile = window.innerWidth < 640;
+      if (mobile !== isMobile) {
+        setIsMobile(mobile);
+      }
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container && !isMobile) {
-      container.addEventListener('scroll', checkFilterScroll);
-      setTimeout(checkFilterScroll, 100);
+      const debouncedCheck = () => requestAnimationFrame(checkFilterScroll);
+      container.addEventListener('scroll', debouncedCheck, { passive: true });
+      debouncedCheck();
+      
+      return () => container.removeEventListener('scroll', debouncedCheck);
     }
-
-    window.addEventListener('scroll', checkPageScroll);
-    checkPageScroll();
-
-    return () => {
-      if (container) {
-        container.removeEventListener('scroll', checkFilterScroll);
-      }
-      window.removeEventListener('scroll', checkPageScroll);
-    };
   }, [isMobile]);
+
+  useEffect(() => {
+    const debouncedPageScroll = () => requestAnimationFrame(checkPageScroll);
+    window.addEventListener('scroll', debouncedPageScroll, { passive: true });
+    debouncedPageScroll();
+    
+    return () => window.removeEventListener('scroll', debouncedPageScroll);
+  }, [hasScrollShadow]);
 
   useEffect(() => {
     checkFilterScroll();
@@ -154,6 +163,7 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
             scrollBehavior: 'smooth',
             msOverflowStyle: 'none',
             scrollbarWidth: 'none',
+            contain: 'content'
           }}
         >
           {categories.map(({ id, label, icon: Icon }) => (

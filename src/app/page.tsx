@@ -16,13 +16,11 @@ const BRANDS_PER_PAGE = 16;
 const HEADER_HEIGHT = 132;
 const SCROLL_THRESHOLD = 400;
 
-// Memoized brand card component
 const MemoizedBrandCard = memo(BrandCard, (prev, next) => {
   return prev.brand.id === next.brand.id && 
          prev.isPriority === next.isPriority;
 });
 
-// Optimized brand grid without virtualization
 const BrandGrid = memo(({ brands, onBrandClick, visibleCount }: { 
   brands: SustainableBrand[], 
   onBrandClick: (brand: SustainableBrand) => void,
@@ -77,7 +75,6 @@ export default function Home(): JSX.Element {
   const filteredBrands = useMemo(() => {
     if (!brands.length) return [];
     
-    // Create indexes for faster lookup
     const searchTerms = searchQuery.toLowerCase().split(' ');
     
     return brands.filter(brand => {
@@ -106,7 +103,6 @@ export default function Home(): JSX.Element {
       requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         
-        // Only update state if necessary
         if (currentScrollY > 0 !== showShadow) {
           setShowShadow(currentScrollY > 0);
         }
@@ -187,7 +183,11 @@ export default function Home(): JSX.Element {
         className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 will-change-transform ${
           isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
         }`} 
-        style={{ zIndex: 49 }}
+        style={{ 
+          zIndex: 49,
+          contain: 'layout style paint',
+          height: 'var(--header-height, 132px)'
+        }}
       >
         <div className="transition-shadow duration-200">
           <div className="relative" style={{ zIndex: 51 }}>
@@ -217,12 +217,28 @@ export default function Home(): JSX.Element {
         </div>
       </div>
 
-      <div className="h-[132px] sm:h-[152px]" />
+      <div 
+        className="h-[132px] sm:h-[152px]" 
+        style={{ 
+          contain: 'strict',
+          contentVisibility: 'auto'
+        }}
+      />
 
-      <main className="flex-1" role="main">
+      <main 
+        className="flex-1" 
+        role="main"
+        style={{ contain: 'content' }}
+      >
         <div className="px-4 sm:px-20">
           {!activeCategory && !searchQuery && !isLoading && filteredBrands.length > 0 && (
-            <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
+            <div 
+              className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8"
+              style={{ 
+                minHeight: '100px',
+                contain: 'content'
+              }}
+            >
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
                 Discover Tomorrow&apos;s India
                 <br />
