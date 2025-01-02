@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import { useRef, useState, useEffect } from 'react';
 import { Category } from '@/lib/brands';
 import {
@@ -22,13 +23,13 @@ interface QuickFilterProps {
   onCategoryChange: (category: Category | 'eco-champion' | null) => void;
 }
 
-export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFilterProps) => {
+const QuickFilterContent = ({ activeCategory = null, onCategoryChange }: QuickFilterProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showRightArrow, setShowRightArrow] = useState(false);
   const [hasScrollShadow, setHasScrollShadow] = useState(false);
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 640 : true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const categories: CategoryItem[] = [
     { id: null, label: 'All', icon: LayoutGrid },
@@ -98,6 +99,14 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
       });
     }
   };
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+    if (scrollContainerRef.current) {
+      const { scrollWidth, clientWidth } = scrollContainerRef.current;
+      setShowRightArrow(scrollWidth > clientWidth);
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -206,5 +215,20 @@ export const QuickFilter = ({ activeCategory = null, onCategoryChange }: QuickFi
     </div>
   );
 };
+
+// Use dynamic import with no SSR
+export const QuickFilter = dynamic(
+  () => Promise.resolve(QuickFilterContent),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="border-t border-neutral-200">
+        <div className="relative bg-white py-4 px-20">
+          <div className="h-[52px]" />
+        </div>
+      </div>
+    )
+  }
+);
 
 export default QuickFilter;

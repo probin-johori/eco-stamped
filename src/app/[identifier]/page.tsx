@@ -364,6 +364,7 @@ export default function BrandPage({ params }: Props) {
               {hasSidebarContent && (
                 <div className="hidden lg:block lg:col-span-4">
                   <BrandSidebar 
+                    key={brand.id}
                     founder={brand.founder}
                     workforce={brand.workforce}
                     origin={brand.origin}

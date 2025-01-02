@@ -7,6 +7,7 @@ export interface BrandImage {
 }
 
 export interface Founder {
+  [x: string]: any;
   role: ReactNode;
   name: string;
   imageUrl: string;
