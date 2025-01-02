@@ -13,6 +13,7 @@ import { useBrands } from '@/lib/hooks/useBrands';
 import { useQueryClient } from '@tanstack/react-query';
 
 const BRANDS_PER_PAGE = 16;
+const HEADER_HEIGHT = 132;
 const SCROLL_THRESHOLD = 400;
 
 const MemoizedBrandCard = memo(BrandCard, (prev, next) => {
@@ -49,11 +50,11 @@ const slugify = (text: string): string => {
 };
 
 export default function Home(): JSX.Element {
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState<Category | 'eco-champion' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showShadow, setShowShadow] = useState(false);
   const [showAddBrandForm, setShowAddBrandForm] = useState(false);
   const [visibleBrands, setVisibleBrands] = useState<number>(BRANDS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -66,10 +67,6 @@ export default function Home(): JSX.Element {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { data: brands = [], isLoading, error } = useBrands();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleBrandClick = useCallback((brand: SustainableBrand) => {
     router.push(`/${slugify(brand.name)}`);
@@ -106,7 +103,11 @@ export default function Home(): JSX.Element {
       requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         
-        if (!isSelectingCategories) {
+        if (currentScrollY > 0 !== showShadow) {
+          setShowShadow(currentScrollY > 0);
+        }
+        
+        if (currentScrollY !== lastScrollY && !isSelectingCategories) {
           const shouldHideHeader = 
             currentScrollY >= SCROLL_THRESHOLD && 
             currentScrollY > lastScrollY;
@@ -120,7 +121,7 @@ export default function Home(): JSX.Element {
       });
       ticking.current = true;
     }
-  }, [lastScrollY, isSelectingCategories, isHeaderHidden]);
+  }, [lastScrollY, isSelectingCategories, showShadow, isHeaderHidden]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -166,32 +167,9 @@ export default function Home(): JSX.Element {
     }
   }, [queryClient]);
 
-  const handleCategoryChange = useCallback((category: Category | 'eco-champion' | null) => {
-    if (mounted) {
-      requestAnimationFrame(() => {
-        setIsSelectingCategories(true);
-        setActiveCategory(category);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => setIsSelectingCategories(false), 1000);
-      });
-    }
-  }, [mounted]);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: BRANDS_PER_PAGE }).map((_, index) => (
-            <BrandCardSkeleton key={index} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background p-4">
         <p className="text-destructive">
           Error: {error instanceof Error ? error.message : 'Failed to load brands'}
         </p>
@@ -200,31 +178,45 @@ export default function Home(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Fixed Header Container */}
+    <div className="flex flex-col min-h-screen bg-background">
       <div 
-        className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 z-[100] ${
+        className={`fixed inset-x-0 top-0 bg-background transform transition-transform duration-300 will-change-transform ${
           isHeaderHidden ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'
-        }`}
+        }`} 
+        style={{ zIndex: 49 }}
       >
-        <Header 
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          showAddBrandForm={showAddBrandForm}
-          onShowAddBrandForm={setShowAddBrandForm}
-        />
-        <QuickFilter 
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
-        />
+        <div className="transition-shadow duration-200">
+          <div className="relative" style={{ zIndex: 51 }}>
+            <Header 
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              disableShadow
+              className="w-full"
+              showAddBrandForm={showAddBrandForm}
+              onShowAddBrandForm={setShowAddBrandForm}
+            />
+          </div>
+          
+          <div className="relative" style={{ zIndex: 50 }}>
+            <QuickFilter 
+              activeCategory={activeCategory}
+              onCategoryChange={(category) => {
+                requestAnimationFrame(() => {
+                  setIsSelectingCategories(true);
+                  setActiveCategory(category);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  setTimeout(() => setIsSelectingCategories(false), 1000);
+                });
+              }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Spacer */}
-      <div className="h-[152px] sm:h-[172px]" />
+      <div className="h-[132px] sm:h-[152px]" />
 
-      {/* Main Content */}
-      <main>
-        <div className="px-4 sm:px-20 pb-16">
+      <main className="flex-1" role="main">
+        <div className="px-4 sm:px-20">
           {!activeCategory && !searchQuery && !isLoading && filteredBrands.length > 0 && (
             <div className="text-center mb-6 sm:mb-12 pt-8 sm:pt-8">
               <h1 className="text-2xl sm:text-4xl font-semibold text-foreground leading-tight">
@@ -256,11 +248,13 @@ export default function Home(): JSX.Element {
                   ))}
                 </div>
               ) : (
-                <BrandGrid 
-                  brands={filteredBrands}
-                  onBrandClick={handleBrandClick}
-                  visibleCount={visibleBrands}
-                />
+                <div className="h-full">
+                  <BrandGrid 
+                    brands={filteredBrands}
+                    onBrandClick={handleBrandClick}
+                    visibleCount={visibleBrands}
+                  />
+                </div>
               )}
             </div>
           )}
@@ -273,21 +267,11 @@ export default function Home(): JSX.Element {
 
       <Footer onShowAddBrandForm={setShowAddBrandForm} />
 
-      {/* Overlay for AddBrandForm */}
-      {showAddBrandForm && (
-        <div className="fixed inset-0 bg-black/50 z-[90]" />
-      )}
-
-      {/* AddBrandForm */}
-      {mounted && (
-        <div className="z-[200]">
-          <AddBrandForm 
-            isOpen={showAddBrandForm}
-            onClose={() => setShowAddBrandForm(false)}
-            onSubmit={handleFormSubmit}
-          />
-        </div>
-      )}
+      <AddBrandForm 
+        isOpen={showAddBrandForm}
+        onClose={() => setShowAddBrandForm(false)}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 }
