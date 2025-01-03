@@ -44,7 +44,9 @@ const IconMap = {
 } as const;
 
 const slugify = (text: string) => {
-  return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+  const slug = text?.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+  console.log('Slugify:', { original: text, slug });
+  return slug;
 };
 
 interface Props {
@@ -54,7 +56,9 @@ interface Props {
 }
 
 export default function BrandPage({ params }: Props) {
+  console.log('BrandPage mounted with params:', params);
   const { identifier } = params;
+
   const [brand, setBrand] = useState<SustainableBrand | null>(null);
   const [allBrands, setAllBrands] = useState<SustainableBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +68,7 @@ export default function BrandPage({ params }: Props) {
 
   useEffect(() => {
     const testAirtableConnection = async () => {
+      console.log('Testing Airtable connection...');
       try {
         const isConnected = await AirtableService.testConnection();
         console.log('Airtable connection test:', {
@@ -78,22 +83,52 @@ export default function BrandPage({ params }: Props) {
     };
 
     const fetchBrands = async () => {
+      console.log('Starting fetchBrands with identifier:', identifier);
       try {
         const isConnected = await testAirtableConnection();
+        console.log('Airtable connection status:', isConnected);
+        
         if (!isConnected) {
           throw new Error('Failed to connect to Airtable');
         }
 
         const brands = await getBrands();
+        console.log('Brands fetched successfully:', {
+          count: brands?.length,
+          firstBrand: brands[0]?.name,
+          lastBrand: brands[brands.length - 1]?.name
+        });
+
+        const foundBrand = brands.find(b => {
+          const slugifiedName = slugify(b.name);
+          console.log('Brand comparison:', {
+            brandId: b.id,
+            brandName: b.name,
+            slugifiedName,
+            identifier,
+            matchesSlug: slugifiedName === identifier,
+            matchesId: b.id === identifier
+          });
+          return slugifiedName === identifier || b.id === identifier;
+        });
+
+        console.log('Brand match result:', foundBrand ? {
+          name: foundBrand.name,
+          id: foundBrand.id,
+          categories: foundBrand.categories
+        } : 'No match found');
+
         setAllBrands(brands);
-        const foundBrand = brands.find(
-          (b) => slugify(b.name) === identifier || b.id === identifier
-        );
         setBrand(foundBrand || null);
         setError(null);
+
+        if (!foundBrand) {
+          console.log('Brand not found, will trigger notFound()');
+          notFound();
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        console.error('Error fetching brands:', {
+        console.error('Error in fetchBrands:', {
           error,
           message: errorMessage,
           timestamp: new Date().toISOString()
@@ -108,6 +143,8 @@ export default function BrandPage({ params }: Props) {
   }, [identifier]);
 
   const relatedBrands = useMemo(() => {
+    console.log('Calculating related brands for:', brand?.name);
+    
     if (!brand) return [];
     
     const otherBrands = allBrands.filter(b => b.id !== brand.id);
@@ -115,28 +152,32 @@ export default function BrandPage({ params }: Props) {
     const scoredBrands = otherBrands.map(b => {
       let score = 0;
       
-      const categoryMatch = b.categories.some(cat => 
-        brand.categories.includes(cat));
+      const categoryMatch = b.categories?.some(cat => 
+        brand.categories?.includes(cat));
       if (categoryMatch) score += 3;
       
-      if (b.origin.country === brand.origin.country) score += 1;
+      if (b.origin?.country === brand.origin?.country) score += 1;
       
-      const currentFeatures = brand.content.sustainableFeatures.map(f => f.title);
-      const commonFeatures = b.content.sustainableFeatures
-        .map(f => f.title)
-        .filter(f => currentFeatures.includes(f));
+      const currentFeatures = brand.content?.sustainableFeatures?.map(f => f.title) || [];
+      const commonFeatures = b.content?.sustainableFeatures
+        ?.map(f => f.title)
+        ?.filter(f => currentFeatures.includes(f)) || [];
       score += commonFeatures.length;
 
       return { brand: b, score };
     });
 
-    return scoredBrands
+    const relatedBrands = scoredBrands
       .sort((a, b) => b.score - a.score)
       .slice(0, 4)
       .map(item => item.brand);
+
+    console.log('Related brands calculated:', relatedBrands.map(b => b.name));
+    return relatedBrands;
   }, [brand, allBrands]);
 
   if (isLoading) {
+    console.log('Rendering loading state');
     return (
       <div className="min-h-screen bg-background">
         <div className={`${showAddBrandForm ? 'opacity-40' : ''}`}>
@@ -173,7 +214,9 @@ export default function BrandPage({ params }: Props) {
       </div>
     );
   }
+
   if (error) {
+    console.log('Rendering error state:', error);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -185,7 +228,9 @@ export default function BrandPage({ params }: Props) {
   }
 
   if (!brand) {
+    console.log('Brand not found, calling notFound()');
     notFound();
+    return null;
   }
 
   const hasCategories = brand.categories?.length > 0;
@@ -197,6 +242,16 @@ export default function BrandPage({ params }: Props) {
     brand.origin?.country || brand.businessStartDate || brand.productRange?.length > 0 || 
     brand.certifications?.length > 0 || brand.retailers?.length > 0;
   const hasRelatedBrands = relatedBrands.length > 0;
+
+  console.log('Rendering brand page with flags:', {
+    hasCategories,
+    hasAbout,
+    hasImages,
+    hasImpact,
+    hasSustainableFeatures,
+    hasSidebarContent,
+    hasRelatedBrands
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -224,6 +279,7 @@ export default function BrandPage({ params }: Props) {
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
+                      console.error('Logo image failed to load:', brand.logo);
                     }}
                   />
                 ) : (
@@ -302,7 +358,6 @@ export default function BrandPage({ params }: Props) {
 
             <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 mt-8">
               <div className="lg:col-span-8">
-                {/* Mobile-only Sidebar */}
                 {hasSidebarContent && (
                   <div className="block lg:hidden mb-8">
                     <BrandSidebar 
@@ -360,7 +415,6 @@ export default function BrandPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* Desktop-only Sidebar */}
               {hasSidebarContent && (
                 <div className="hidden lg:block lg:col-span-4">
                   <BrandSidebar 
@@ -393,6 +447,7 @@ export default function BrandPage({ params }: Props) {
                           brand={relatedBrand} 
                           onClick={() => {
                             const brandIdentifier = slugify(relatedBrand.name);
+                            console.log('Navigating to brand:', brandIdentifier);
                             window.location.href = `/${brandIdentifier}`;
                           }}
                         />
@@ -419,6 +474,7 @@ export default function BrandPage({ params }: Props) {
                             brand={relatedBrand} 
                             onClick={() => {
                               const brandIdentifier = slugify(relatedBrand.name);
+                              console.log('Navigating to brand (mobile):', brandIdentifier);
                               window.location.href = `/${brandIdentifier}`;
                             }}
                           />

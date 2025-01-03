@@ -84,12 +84,14 @@ export const viewport = {
 
 export default function RootLayout({
  children,
+ modal
 }: {
  children: ReactNode;
+ modal: ReactNode;
 }) {
  return (
-   <html 
-     lang="en" 
+   <html
+     lang="en"
      className={`${geistSans.variable} ${geistMono.variable}`}
      suppressHydrationWarning
    >
@@ -100,6 +102,7 @@ export default function RootLayout({
      <body className="font-sans antialiased">
        <QueryProvider>
          {children}
+         {modal}
        </QueryProvider>
        <Analytics />
        <SpeedInsights />
